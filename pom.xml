@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.chiknrice</groupId>
     <artifactId>jen8583</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2-SNAPSHOT</version>
 
     <name>jen8583</name>
     <description>A flexible Java ENcoder for ISO-8583 messages</description>
@@ -11,8 +11,8 @@
 
     <licenses>
         <license>
-            <name>GPL v2.0</name>
-            <url>http://www.gnu.org/licenses/gpl-2.0.txt</url>
+            <name>GPL v3.0</name>
+            <url>http://www.gnu.org/licenses/gpl.txt</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
