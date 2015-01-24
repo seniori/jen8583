@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.chiknrice.org/iso8583" xmlns:tns="http://www.chiknrice.org/iso8583"
+    elementFormDefault="qualified">
+
+    <!--
+
+        Copyright (c) 2014 Ian Bondoc
+
+        This file is part of Jen8583
+
+        Jen8583 is free software: you can redistribute it and/or modify it under the terms of the
+        GNU General Public License as published by the Free Software Foundation, either version 3
+        of the License, or(at your option) any later version.
+
+        Jen8583 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+        without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+        See the GNU General Public License for more details.
+
+        You should have received a copy of the GNU General Public License along with this program.
+        If not, see <http://www.gnu.org/licenses/>.
+
+    -->
+
+    <element name="iso">
+        <complexType>
+            <sequence>
+                <element name="defaults">
+                    <complexType>
+                        <sequence>
+                            <element name="var">
+                                <complexType>
+                                    <attribute name="tag-encoding" type="tns:numeric-encoding" use="required" />
+                                    <attribute name="length-encoding" type="tns:numeric-encoding" use="required" />
+                                </complexType>
+                            </element>
+                            <element name="alpha">
+                                <complexType>
+                                    <attribute name="charset" type="token" use="required" />
+                                    <attribute name="justified" type="tns:justified-type" use="required" />
+                                </complexType>
+                            </element>
+                            <element name="numeric">
+                                <complexType>
+                                    <attribute name="encoding" type="tns:numeric-encoding" use="required" />
+                                </complexType>
+                            </element>
+                            <element name="date">
+                                <complexType>
+                                    <attribute name="encoding" type="tns:date-encoding" use="required" />
+                                    <attribute name="timezone" type="token" use="required" />
+                                </complexType>
+                            </element>
+                            <element name="ordinality">
+                                <complexType>
+                                    <attribute name="mandatory" type="boolean" use="required" />
+                                </complexType>
+                            </element>
+                        </sequence>
+                    </complexType>
+                </element>
+                <element name="header" type="tns:fixed-fields" minOccurs="0">
+                </element>
+                <element name="mti-encoding">
+                    <complexType>
+                        <attribute name="type" type="tns:mti-encoding" use="required" />
+                    </complexType>
+                </element>
+                <element name="msg-bitmap">
+                    <complexType>
+                        <attribute name="type" type="tns:bitmap-type" use="required" />
+                    </complexType>
+                </element>
+                <element name="message" minOccurs="1" maxOccurs="unbounded">
+                    <complexType>
+                        <complexContent>
+                            <extension base="tns:root-fields">
+                                <attribute name="mti" type="int" use="required" />
+                            </extension>
+                        </complexContent>
+                    </complexType>
+                </element>
+            </sequence>
+        </complexType>
+    </element>
+
+    <complexType name="var-fields">
+        <complexContent>
+            <extension base="tns:root-fields">
+                <attributeGroup ref="tns:optional-member" />
+                <attribute name="length" type="int" use="required" />
+                <attributeGroup ref="tns:variable-length" />
+                <attribute name="bitmap-type" type="tns:bitmap-type" use="optional" default="HEX" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="root-fields">
+        <choice minOccurs="1" maxOccurs="unbounded">
+            <element name="alpha" type="tns:alpha-fixed-optional" />
+            <element name="alpha-var" type="tns:alpha-var" />
+            <element name="numeric" type="tns:numeric-fixed-optional" />
+            <element name="numeric-var" type="tns:numeric-var" />
+            <element name="date" type="tns:date-optional" />
+            <element name="binary" type="tns:binary-fixed-optional" />
+            <element name="binary-var" type="tns:binary-var" />
+            <element name="custom" type="tns:custom-fixed-optional" />
+            <element name="custom-var" type="tns:custom-var" />
+            <element name="composite" type="tns:fixed-fields-optional" />
+            <element name="composite-var" type="tns:var-fields" />
+        </choice>
+    </complexType>
+
+    <complexType name="fixed-fields-optional">
+        <complexContent>
+            <extension base="tns:fixed-fields">
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="fixed-fields">
+        <choice minOccurs="1" maxOccurs="unbounded">
+            <element name="alpha" type="tns:alpha-fixed" />
+            <element name="numeric" type="tns:numeric-fixed" />
+            <element name="date" type="tns:date" />
+            <element name="binary" type="tns:binary-fixed" />
+            <element name="custom" type="tns:custom-fixed" />
+            <element name="composite" type="tns:fixed-fields" />
+        </choice>
+    </complexType>
+
+    <complexType name="alpha" abstract="true">
+        <attribute name="length" type="int" use="required" />
+        <attribute name="charset" />
+    </complexType>
+
+    <complexType name="alpha-var">
+        <complexContent>
+            <extension base="tns:alpha">
+                <attributeGroup ref="tns:variable-length" />
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="alpha-fixed">
+        <complexContent>
+            <extension base="tns:alpha">
+                <attribute name="justified" type="tns:justified-type" use="optional" default="LEFT" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="alpha-fixed-optional">
+        <complexContent>
+            <extension base="tns:alpha-fixed">
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="numeric-fixed">
+        <attribute name="length" type="int" use="required" />
+        <attribute name="encoding" type="tns:numeric-encoding" use="optional" />
+    </complexType>
+
+    <complexType name="numeric-fixed-optional">
+        <complexContent>
+            <extension base="tns:numeric-fixed">
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="numeric-var">
+        <complexContent>
+            <extension base="tns:numeric-fixed-optional">
+                <attributeGroup ref="tns:variable-length" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="date">
+        <attribute name="format" type="token" use="required" />
+        <attribute name="timezone" type="token" use="optional" default="UTC" />
+        <attribute name="encoding" type="tns:date-encoding" use="optional" default="BCD" />
+    </complexType>
+
+    <complexType name="date-optional">
+        <complexContent>
+            <extension base="tns:date">
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="binary-fixed">
+        <attribute name="length" type="int" use="required" />
+    </complexType>
+
+    <complexType name="binary-fixed-optional">
+        <complexContent>
+            <extension base="tns:binary-fixed">
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="binary-var">
+        <complexContent>
+            <extension base="tns:binary-fixed-optional">
+                <attributeGroup ref="tns:variable-length" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="custom-fixed">
+        <sequence>
+            <element name="param" minOccurs="0" maxOccurs="unbounded">
+                <complexType>
+                    <attribute name="key" type="token" use="required" />
+                    <attribute name="value" type="token" use="required" />
+                </complexType>
+            </element>
+        </sequence>
+        <attribute name="length" type="int" use="required" />
+        <attribute name="class" type="token" use="required" />
+    </complexType>
+
+    <complexType name="custom-fixed-optional">
+        <complexContent>
+            <extension base="tns:custom-fixed">
+                <attributeGroup ref="tns:optional-member" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="custom-var">
+        <complexContent>
+            <extension base="tns:custom-fixed-optional">
+                <attributeGroup ref="tns:variable-length" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <attributeGroup name="optional-member">
+        <attribute name="index" type="int" use="required" />
+        <attribute name="mandatory" type="boolean" default="true" />
+    </attributeGroup>
+
+    <attributeGroup name="variable-length">
+        <attribute name="tag-length" type="int" use="optional" default="2" />
+        <attribute name="tag-encoding" type="tns:numeric-encoding" use="optional" default="BCD" />
+        <attribute name="length-encoding" type="tns:numeric-encoding" use="optional" default="BCD" />
+    </attributeGroup>
+
+    <simpleType name="numeric-encoding">
+        <restriction base="token">
+            <enumeration value="CHAR"></enumeration>
+            <enumeration value="BINARY"></enumeration>
+            <enumeration value="BCD"></enumeration>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="date-encoding">
+        <restriction base="token">
+            <enumeration value="CHAR"></enumeration>
+            <enumeration value="BCD"></enumeration>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="mti-encoding">
+        <restriction base="token">
+            <enumeration value="CHAR"></enumeration>
+            <enumeration value="BCD"></enumeration>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="bitmap-type">
+        <restriction base="token">
+            <enumeration value="BINARY" />
+            <enumeration value="HEX" />
+            <enumeration value="COMPRESSED" />
+        </restriction>
+    </simpleType>
+
+    <simpleType name="padding-type">
+        <restriction base="token">
+            <pattern value="\d|(SPACE)" />
+        </restriction>
+    </simpleType>
+
+    <simpleType name="justified-type">
+        <restriction base="token">
+            <enumeration value="LEFT" />
+            <enumeration value="RIGHT" />
+        </restriction>
+    </simpleType>
+</schema>

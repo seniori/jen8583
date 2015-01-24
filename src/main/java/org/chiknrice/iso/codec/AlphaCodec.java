@@ -1,0 +1,67 @@
+/* 
+ * Copyright (c) 2014 Ian Bondoc
+ * 
+ * This file is part of Jen8583
+ * 
+ * Jen8583 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation, either version 3 of the License, or(at your option) any later version.
+ * 
+ * Jen8583 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with this program. If not, see
+ * <http://www.gnu.org/licenses/>.
+ * 
+ */
+package org.chiknrice.iso.codec;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
+import org.chiknrice.iso.config.ComponentDef.Encoding;
+
+/**
+ * A codec implementation for alphanumeric fields. It accepts a character which would be used to encode/decode the
+ * string to and from byte[]. The character set used is either the one used for the specific field or the one set as the
+ * default (both in the xml configuration).
+ * 
+ * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
+ * 
+ */
+public final class AlphaCodec implements Codec<String> {
+
+    private final Charset charset;
+    private final Boolean leftJustified;
+    private final Integer fixedLength;
+
+    public AlphaCodec(Charset charset) {
+        this(charset, null, null);
+    }
+
+    public AlphaCodec(Charset charset, Boolean leftJustified, Integer fixedLength) {
+        this.charset = charset;
+        this.leftJustified = leftJustified;
+        this.fixedLength = fixedLength;
+    }
+
+    public String decode(ByteBuffer buf) {
+        byte[] bytes = new byte[fixedLength != null ? fixedLength : buf.limit() - buf.position()];
+        buf.get(bytes);
+        return new String(bytes, charset != null ? charset : StandardCharsets.ISO_8859_1).trim();
+    }
+
+    public void encode(ByteBuffer buf, String value) {
+        String stringValue = value.toString();
+        if (fixedLength != null) {
+            stringValue = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", stringValue);
+        }
+        buf.put(stringValue.getBytes(charset != null ? charset : StandardCharsets.ISO_8859_1));
+    }
+
+    @Override
+    public Encoding getEncoding() {
+        return Encoding.CHAR;
+    }
+
+}
