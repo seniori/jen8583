@@ -200,11 +200,21 @@ public final class IsoMessageDef {
             final BitmapCodec bitmapCodec = new BitmapCodec(bitmapType);
             for (int i = 0; i < messageList.getLength(); i++) {
                 Element messageDef = (Element) messageList.item(i);
-                Integer mti = Integer.valueOf(messageDef.getAttribute("mti"));
+                Integer mti = getInteger(messageDef, "mti");
                 if (defs.containsKey(mti)) {
                     throw new RuntimeException(String.format("Duplicate message config for mti %d", mti));
                 }
-                Map<Integer, ComponentDef> fieldDefs = buildVarComponents(messageDef);
+                
+                Integer superMti = getInteger(messageDef, "extends");
+                
+                Map<Integer, ComponentDef> fieldDefs;
+                if(superMti != null) {
+                    fieldDefs = extendMessageDef(messageDef, defs.get(superMti));
+                } else {
+                    fieldDefs = buildVarComponents(messageDef);    
+                }
+                
+                
                 defs.put(mti, new CompositeCodec(fieldDefs, bitmapCodec));
             }
             return defs;
@@ -271,7 +281,7 @@ public final class IsoMessageDef {
                 BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
                 childDefs = buildVarComponents(e);
                 CompositeCodec compositeCodec = new CompositeCodec(childDefs, bitmapCodec);
-                Integer tagDigits = getDigits(e, "tag-length");
+                Integer tagDigits = getInteger(e, "tag-length");
 
                 NumericCodec lengthCodec = buildVarLengthCodec(e);
                 if (tagDigits != null) {
@@ -361,7 +371,7 @@ public final class IsoMessageDef {
         }
 
         private NumericCodec buildVarLengthCodec(Element e) {
-            return new NumericCodec(getEncoding(e, "length-encoding", defaultLengthEncoding), getDigits(e, "length"));
+            return new NumericCodec(getEncoding(e, "length-encoding", defaultLengthEncoding), getInteger(e, "length"));
         }
 
         private Charset getCharset(Element e) {
@@ -379,7 +389,7 @@ public final class IsoMessageDef {
             return value != null ? Encoding.valueOf(value) : defaultEncoding;
         }
 
-        private Integer getDigits(Element e, String attributeName) {
+        private Integer getInteger(Element e, String attributeName) {
             String value = getOptionalAttribute(e, attributeName);
             return value != null ? Integer.valueOf(value) : null;
         }
@@ -401,6 +411,19 @@ public final class IsoMessageDef {
 
         private String getOptionalAttribute(Element e, String attribute) {
             return e.getAttribute(attribute).length() > 0 ? e.getAttribute(attribute) : null;
+        }
+        
+        
+
+
+        /**
+         * @param messageDef
+         * @param compositeCodec
+         * @return
+         */
+        private Map<Integer, ComponentDef> extendMessageDef(Element messageDef, CompositeCodec compositeCodec) {
+            // TODO Auto-generated method stub
+            return null;
         }
 
     }

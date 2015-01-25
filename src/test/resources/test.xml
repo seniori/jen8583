@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iso xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.chiknrice.org/jen8583"
+    xsi:schemaLocation="http://www.chiknrice.org/jen8583 ../../main/resources/jen8583.xsd">
+
+    <defaults>
+        <var tag-encoding="CHAR" length-encoding="CHAR" />
+        <alpha justified="LEFT" charset="ISO" />
+        <numeric encoding="CHAR" />
+        <date timezone="SYSTEM" encoding="CHAR" />
+        <ordinality mandatory="true" />
+    </defaults>
+
+    <mti-encoding type="CHAR" />
+
+    <msg-bitmap type="BINARY" />
+
+    <message mti="100">
+        <alpha index="2" length="1" />
+        <alpha index="3" length="1" />
+        <alpha index="4" length="1" />
+        <composite index="5">
+            <alpha length="2" />
+            <numeric length="2" />
+        </composite>
+        <composite-var index="6" length="2" bitmap-type="BINARY">
+            <alpha index="1" length="2" />
+            <alpha index="2" length="2" />
+        </composite-var>
+    </message>
+
+    <message-ext extends="100" mti="110">
+        <set>
+            <composite-var index="5" length="2">
+                <alpha index="2" length="2" />
+                <alpha index="3" length="3" />
+            </composite-var>
+        </set>
+        <remove>
+            <field index="4" />
+            <composite index="6">
+                <field index="1" />
+            </composite>
+        </remove>
+    </message-ext>
+
+
+</iso>
+    
+    
+    

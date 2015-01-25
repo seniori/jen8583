@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.chiknrice.org/jen8583" xmlns:tns="http://www.chiknrice.org/jen8583"
-    elementFormDefault="qualified" version="1.0">
+    elementFormDefault="qualified" version="2.0">
 
     <!--
 
@@ -70,15 +70,8 @@
                         <attribute name="type" type="tns:bitmap-type" use="required" />
                     </complexType>
                 </element>
-                <element name="message" minOccurs="1" maxOccurs="unbounded">
-                    <complexType>
-                        <complexContent>
-                            <extension base="tns:root-fields">
-                                <attribute name="mti" type="int" use="required" />
-                            </extension>
-                        </complexContent>
-                    </complexType>
-                </element>
+                <element name="message" type="tns:message" minOccurs="1" maxOccurs="unbounded" />
+                <element name="message-ext" type="tns:message-extension" minOccurs="0" maxOccurs="unbounded" />
             </sequence>
         </complexType>
     </element>
@@ -90,6 +83,42 @@
                 <attribute name="length" type="int" use="required" />
                 <attributeGroup ref="tns:variable-length" />
                 <attribute name="bitmap-type" type="tns:bitmap-type" use="optional" default="HEX" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="message">
+        <complexContent>
+            <extension base="tns:root-fields">
+                <attribute name="mti" type="int" use="required" />
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="message-extension">
+        <sequence>
+            <element name="set" type="tns:root-fields" minOccurs="0" />
+            <element name="remove" type="tns:excludes" minOccurs="0" />
+        </sequence>
+        <attribute name="mti" type="int" use="required" />
+        <attribute name="extends" type="int" use="required" />
+    </complexType>
+
+    <complexType name="excludes">
+        <choice minOccurs="1" maxOccurs="unbounded">
+            <element name="composite" type="tns:exclude-field" />
+            <element name="field">
+                <complexType>
+                    <attribute name="index" type="int" use="required" />
+                </complexType>
+            </element>
+        </choice>
+    </complexType>
+
+    <complexType name="exclude-field">
+        <complexContent>
+            <extension base="tns:excludes">
+                <attribute name="index" type="int" use="required" />
             </extension>
         </complexContent>
     </complexType>
