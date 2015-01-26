@@ -133,10 +133,6 @@ public class BitmapCodec {
         return (bit - 1) / 8;
     }
 
-    /**
-     * @author <a href="mailto:adrian.bondoc@verifone.com">Ian Bondoc</a>
-     * 
-     */
     public static class Bitmap {
 
         public static enum Type {

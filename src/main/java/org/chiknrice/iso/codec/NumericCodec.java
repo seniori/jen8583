@@ -74,7 +74,7 @@ public class NumericCodec implements Codec<Number> {
             throw new RuntimeException(String.format("Unsupported encoding %s", encoding));
         }
         if (value instanceof String) {
-            String numericString = ((String) value).trim();
+            String numericString = ((String) value);
             int stringLength = numericString.length();
             int pos = 0;
             while (pos < stringLength - 2 && numericString.charAt(pos) == '0') {

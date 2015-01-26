@@ -103,7 +103,7 @@ public final class IsoMessageDef {
             try {
                 SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 schema = factory.newSchema(new StreamSource(Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("iso8583.xsd")));
+                        .getResourceAsStream("jen8583.xsd")));
                 Validator validator = schema.newValidator();
                 validator.validate(new StreamSource(Thread.currentThread().getContextClassLoader()
                         .getResourceAsStream(configXml)));

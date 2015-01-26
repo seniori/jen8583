@@ -48,7 +48,7 @@ public final class AlphaCodec implements Codec<String> {
     public String decode(ByteBuffer buf) {
         byte[] bytes = new byte[fixedLength != null ? fixedLength : buf.limit() - buf.position()];
         buf.get(bytes);
-        return new String(bytes, charset != null ? charset : StandardCharsets.ISO_8859_1).trim();
+        return new String(bytes, charset != null ? charset : StandardCharsets.ISO_8859_1);
     }
 
     public void encode(ByteBuffer buf, String value) {
