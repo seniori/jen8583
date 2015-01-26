@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.chiknrice</groupId>
     <artifactId>jen8583</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
 
     <name>jen8583</name>
     <description>A flexible Java ENcoder for ISO-8583 messages</description>

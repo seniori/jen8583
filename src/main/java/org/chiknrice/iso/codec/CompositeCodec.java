@@ -107,10 +107,6 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
             Object value = valueEntry.getValue();
             ComponentDef def = getSubComponentDefs().get(index);
 
-            if(index == 2) {
-                System.out.println();
-            }
-            
             if (def == null) {
                 throw new RuntimeException(String.format("No configuration for field %d", index));
             }

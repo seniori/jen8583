@@ -33,7 +33,6 @@ import org.chiknrice.iso.codec.AlphaCodec;
 import org.chiknrice.iso.codec.BinaryCodec;
 import org.chiknrice.iso.codec.BitmapCodec;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
-import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.codec.CompositeCodec;
 import org.chiknrice.iso.codec.Configurable;
@@ -90,10 +89,11 @@ public final class IsoMessageDef {
         private Encoding defaultTagEncoding;
         private Encoding defaultLengthEncoding;
         private Charset defaultCharset;
+        private boolean defaultTrim;
+        private boolean defaultLeftJustified;
         private Encoding defaultNumericEncoding;
         private Encoding defaultDateEncoding;
         private TimeZone defaultTimeZone;
-        private boolean defaultLeftJustified;
         private boolean defaultMandatory;
 
         private final Document doc;
@@ -135,7 +135,9 @@ public final class IsoMessageDef {
                         defaultCharset = "SYSTEM".equals(charsetName) ? Charset.defaultCharset() : Charset
                                 .forName(charsetName);
                         LOG.info("Default charset: {}", defaultCharset);
-                        defaultLeftJustified = isLeftJustified(e);
+                        defaultTrim = Boolean.valueOf(e.getAttribute("trim"));
+                        LOG.info("Default trim: {}", defaultTrim);
+                        defaultLeftJustified = "LEFT".equals(e.getAttribute("justified"));
                         LOG.info("Default {} justified", defaultLeftJustified ? "LEFT" : "RIGHT");
                         break;
                     case "numeric":
@@ -166,7 +168,7 @@ public final class IsoMessageDef {
             LOG.info("MTI encoding: {}", mtiEncoding);
 
             CompositeCodec headerCodec = null;
-            Map<Integer, ComponentDef> headerDef = buildHeader(doc);
+            Map<Integer, ComponentDef> headerDef = buildHeader();
             if (headerDef != null) {
                 headerCodec = new CompositeCodec(headerDef);
             }
@@ -174,8 +176,10 @@ public final class IsoMessageDef {
             Bitmap.Type msgBitmapType = Bitmap.Type.valueOf(((Element) doc.getElementsByTagName("msg-bitmap").item(0))
                     .getAttribute("type"));
             LOG.info("Bitmap type: {}", msgBitmapType);
+            BitmapCodec bitmapCodec = new BitmapCodec(msgBitmapType);
+            Map<Integer, CompositeCodec> fieldsCodecs = buildFieldsCodecs(bitmapCodec);
 
-            Map<Integer, CompositeCodec> fieldsCodecs = buildFieldsCodecs(doc, msgBitmapType);
+            buildFieldsCodecsExtension(fieldsCodecs, bitmapCodec);
 
             return new IsoMessageDef(headerCodec, mtiCodec, fieldsCodecs);
         }
@@ -184,38 +188,26 @@ public final class IsoMessageDef {
          * @param doc
          * @return
          */
-        private Map<Integer, ComponentDef> buildHeader(Document doc) {
+        private Map<Integer, ComponentDef> buildHeader() {
             Element headerElement = (Element) doc.getElementsByTagName("header").item(0);
             return headerElement != null ? buildFixedComponents(headerElement) : null;
         }
 
         /**
-         * @param doc
-         * @param bitmapType
+         * @param bitmapCodec
          * @return
          */
-        private Map<Integer, CompositeCodec> buildFieldsCodecs(Document doc, Type bitmapType) {
+        private Map<Integer, CompositeCodec> buildFieldsCodecs(BitmapCodec bitmapCodec) {
             NodeList messageList = doc.getElementsByTagName("message");
             Map<Integer, CompositeCodec> defs = new TreeMap<Integer, CompositeCodec>();
-            final BitmapCodec bitmapCodec = new BitmapCodec(bitmapType);
+            
             for (int i = 0; i < messageList.getLength(); i++) {
                 Element messageDef = (Element) messageList.item(i);
                 Integer mti = getInteger(messageDef, "mti");
                 if (defs.containsKey(mti)) {
                     throw new RuntimeException(String.format("Duplicate message config for mti %d", mti));
                 }
-                
-                Integer superMti = getInteger(messageDef, "extends");
-                
-                Map<Integer, ComponentDef> fieldDefs;
-                if(superMti != null) {
-                    fieldDefs = extendMessageDef(messageDef, defs.get(superMti));
-                } else {
-                    fieldDefs = buildVarComponents(messageDef);    
-                }
-                
-                
-                defs.put(mti, new CompositeCodec(fieldDefs, bitmapCodec));
+                defs.put(mti, new CompositeCodec(buildVarComponents(messageDef), bitmapCodec));
             }
             return defs;
         }
@@ -296,10 +288,11 @@ public final class IsoMessageDef {
                 codec = new CompositeCodec(childDefs);
                 break;
             case "alpha":
-                codec = new AlphaCodec(getCharset(e), isLeftJustified(e), Integer.valueOf(e.getAttribute("length")));
+                codec = new AlphaCodec(getCharset(e), isTrim(e), isLeftJustified(e), Integer.valueOf(e
+                        .getAttribute("length")));
                 break;
             case "alpha-var":
-                codec = new VarCodec<String>(new AlphaCodec(getCharset(e)), buildVarLengthCodec(e));
+                codec = new VarCodec<String>(new AlphaCodec(getCharset(e), isTrim(e)), buildVarLengthCodec(e));
                 break;
             case "numeric":
                 codec = new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding), Integer.valueOf(e
@@ -379,6 +372,16 @@ public final class IsoMessageDef {
             return value != null ? Charset.forName(value) : defaultCharset;
         }
 
+        private Boolean isTrim(Element e) {
+            String value = getOptionalAttribute(e, "trim");
+            return value != null ? "LEFT".equals(value) : defaultTrim;
+        }
+
+        private Boolean isLeftJustified(Element e) {
+            String value = getOptionalAttribute(e, "justified");
+            return value != null ? "LEFT".equals(value) : defaultLeftJustified;
+        }
+
         private TimeZone getTimeZone(Element e) {
             String value = getOptionalAttribute(e, "timezone");
             return value != null ? TimeZone.getTimeZone(value) : defaultTimeZone;
@@ -399,11 +402,6 @@ public final class IsoMessageDef {
             return value != null ? Bitmap.Type.valueOf(value) : null;
         }
 
-        private Boolean isLeftJustified(Element e) {
-            String value = getOptionalAttribute(e, "justified");
-            return value != null ? "LEFT".equals(value) : defaultLeftJustified;
-        }
-
         private boolean isMandatory(Element e) {
             String value = getOptionalAttribute(e, "mandatory");
             return value != null ? Boolean.parseBoolean(value) : defaultMandatory;
@@ -412,20 +410,11 @@ public final class IsoMessageDef {
         private String getOptionalAttribute(Element e, String attribute) {
             return e.getAttribute(attribute).length() > 0 ? e.getAttribute(attribute) : null;
         }
-        
-        
 
-
-        /**
-         * @param messageDef
-         * @param compositeCodec
-         * @return
-         */
-        private Map<Integer, ComponentDef> extendMessageDef(Element messageDef, CompositeCodec compositeCodec) {
-            // TODO Auto-generated method stub
-            return null;
+        private void buildFieldsCodecsExtension(Map<Integer, CompositeCodec> existingCodecs, BitmapCodec bitmapCodec) {
+            // TODO
         }
-
+        
     }
 
 }

@@ -37,6 +37,7 @@
                                 <complexType>
                                     <attribute name="charset" type="token" use="required" />
                                     <attribute name="justified" type="tns:justified-type" use="required" />
+                                    <attribute name="trim" type="boolean" use="required" />
                                 </complexType>
                             </element>
                             <element name="numeric">
@@ -160,7 +161,8 @@
 
     <complexType name="alpha" abstract="true">
         <attribute name="length" type="int" use="required" />
-        <attribute name="charset" />
+        <attribute name="charset" type="token" use="optional" default="UTF-8" />
+        <attribute name="trim" type="boolean" use="optional" default="true" />
     </complexType>
 
     <complexType name="alpha-var">
@@ -190,7 +192,7 @@
 
     <complexType name="numeric-fixed">
         <attribute name="length" type="int" use="required" />
-        <attribute name="encoding" type="tns:numeric-encoding" use="optional" />
+        <attribute name="encoding" type="tns:numeric-encoding" use="optional" default="CHAR" />
     </complexType>
 
     <complexType name="numeric-fixed-optional">
@@ -274,7 +276,7 @@
 
     <attributeGroup name="optional-member">
         <attribute name="index" type="int" use="required" />
-        <attribute name="mandatory" type="boolean" default="true" />
+        <attribute name="mandatory" type="boolean" use="optional" default="false" />
     </attributeGroup>
 
     <attributeGroup name="variable-length">

@@ -4,7 +4,7 @@
 
     <defaults>
         <var tag-encoding="CHAR" length-encoding="CHAR" />
-        <alpha justified="LEFT" charset="ISO" />
+        <alpha justified="LEFT" charset="ISO" trim="true" />
         <numeric encoding="CHAR" />
         <date timezone="SYSTEM" encoding="CHAR" />
         <ordinality mandatory="true" />

@@ -22,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.Binary;
-import org.chiknrice.iso.util.Hex;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -135,13 +134,5 @@ public class NumericCodec implements Codec<Number> {
     @Override
     public Encoding getEncoding() {
         return encoding;
-    }
-
-    public static void main(String[] args) {
-        BigInteger bi = new BigInteger("10000000000000000000");
-        NumericCodec codec = new NumericCodec(Encoding.BINARY, 8);
-        ByteBuffer buf = ByteBuffer.allocate(20);
-        codec.encode(buf, bi);
-        System.out.println(Hex.encode(buf.array()));
     }
 }

@@ -26,6 +26,9 @@ import org.chiknrice.iso.codec.Configurable;
 import org.chiknrice.iso.codec.CustomCodec;
 
 /**
+ * An example custom codec. For a custom codec to participate in a message extension, it has to implement Clonable and
+ * properly implement clone() method.
+ * 
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
@@ -114,10 +117,7 @@ public class StructDataCodec implements CustomCodec, Configurable {
 
     @Override
     public void configure(Map<String, String> params) {
-        System.out.println("config params+");
-        for (Entry<String, String> param : params.entrySet()) {
-            System.out.println(String.format("  %s : %s", param.getKey(), param.getValue()));
-        }
+        // Configure codec here
     }
 
 }

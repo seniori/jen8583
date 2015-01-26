@@ -32,15 +32,17 @@ import org.chiknrice.iso.config.ComponentDef.Encoding;
 public final class AlphaCodec implements Codec<String> {
 
     private final Charset charset;
+    private final Boolean trim;
     private final Boolean leftJustified;
     private final Integer fixedLength;
 
-    public AlphaCodec(Charset charset) {
-        this(charset, null, null);
+    public AlphaCodec(Charset charset, Boolean trim) {
+        this(charset, trim, null, null);
     }
 
-    public AlphaCodec(Charset charset, Boolean leftJustified, Integer fixedLength) {
+    public AlphaCodec(Charset charset, Boolean trim, Boolean leftJustified, Integer fixedLength) {
         this.charset = charset;
+        this.trim = trim;
         this.leftJustified = leftJustified;
         this.fixedLength = fixedLength;
     }
@@ -48,7 +50,8 @@ public final class AlphaCodec implements Codec<String> {
     public String decode(ByteBuffer buf) {
         byte[] bytes = new byte[fixedLength != null ? fixedLength : buf.limit() - buf.position()];
         buf.get(bytes);
-        return new String(bytes, charset != null ? charset : StandardCharsets.ISO_8859_1);
+        String value = new String(bytes, charset != null ? charset : StandardCharsets.ISO_8859_1);
+        return trim ? value.trim() : value;
     }
 
     public void encode(ByteBuffer buf, String value) {
