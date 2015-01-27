@@ -67,4 +67,9 @@ public final class AlphaCodec implements Codec<String> {
         return Encoding.CHAR;
     }
 
+    @Override
+    public AlphaCodec clone() throws CloneNotSupportedException {
+        return new AlphaCodec(charset, trim, leftJustified, fixedLength);
+    }
+
 }

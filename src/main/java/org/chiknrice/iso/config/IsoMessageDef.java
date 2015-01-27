@@ -84,6 +84,40 @@ public final class IsoMessageDef {
         return new ConfigBuilder(configXml).build();
     }
 
+    @Override
+    public int hashCode() {
+        int hash = getClass().hashCode();
+        if (headerCodec != null) {
+            hash ^= headerCodec.hashCode();
+        }
+        if (mtiCodec != null) {
+            hash ^= mtiCodec.hashCode();
+        }
+        if (fieldsCodec != null) {
+            hash ^= fieldsCodec.hashCode();
+        }
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            IsoMessageDef other = (IsoMessageDef) o;
+            return isEquals(other.headerCodec, headerCodec) && isEquals(other.mtiCodec, mtiCodec)
+                    && isEquals(other.fieldsCodec, fieldsCodec);
+        }
+    }
+
+    private boolean isEquals(Object x, Object y) {
+        return x == null ? y == null : x.equals(y);
+    }
+
     private static class ConfigBuilder {
 
         private Encoding defaultTagEncoding;
@@ -200,7 +234,7 @@ public final class IsoMessageDef {
         private Map<Integer, CompositeCodec> buildFieldsCodecs(BitmapCodec bitmapCodec) {
             NodeList messageList = doc.getElementsByTagName("message");
             Map<Integer, CompositeCodec> defs = new TreeMap<Integer, CompositeCodec>();
-            
+
             for (int i = 0; i < messageList.getLength(); i++) {
                 Element messageDef = (Element) messageList.item(i);
                 Integer mti = getInteger(messageDef, "mti");
@@ -412,9 +446,28 @@ public final class IsoMessageDef {
         }
 
         private void buildFieldsCodecsExtension(Map<Integer, CompositeCodec> existingCodecs, BitmapCodec bitmapCodec) {
-            // TODO
+            NodeList messageExtList = doc.getElementsByTagName("message-ext");
+            Map<Integer, CompositeCodec> extensions = new TreeMap<Integer, CompositeCodec>();
+            for (int i = 0; i < messageExtList.getLength(); i++) {
+                Element messageDef = (Element) messageExtList.item(i);
+                Integer mtiExisting = getInteger(messageDef, "extends");
+                Integer mti = getInteger(messageDef, "mti");
+                if (existingCodecs.containsKey(mti) || extensions.containsKey(mti)) {
+                    throw new RuntimeException(String.format("Duplicate message config for mti %d", mti));
+                }
+
+                CompositeCodec existing = existingCodecs.get(mtiExisting);
+                CompositeCodec clone;
+                try {
+                    clone = existing.clone();
+                } catch (CloneNotSupportedException e) {
+                    throw new RuntimeException(e.getMessage(), e);
+                }
+                extensions.put(mti, clone);
+            }
+            existingCodecs.putAll(extensions);
         }
-        
+
     }
 
 }

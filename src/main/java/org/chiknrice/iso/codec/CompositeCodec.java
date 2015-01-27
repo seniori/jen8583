@@ -165,4 +165,16 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
         return subComponentDefs;
     }
 
+    @Override
+    public CompositeCodec clone() throws CloneNotSupportedException {
+        Map<Integer, ComponentDef> subComponentDefsClone = new TreeMap<Integer, ComponentDef>();
+        for (Entry<Integer, ComponentDef> entry : this.subComponentDefs.entrySet()) {
+            Integer index = entry.getKey();
+            ComponentDef subComponentDef = entry.getValue().clone();
+            subComponentDefsClone.put(index, subComponentDef);
+        }
+        // TODO: should bitmapCodec be cloned? 
+        return new CompositeCodec(subComponentDefsClone, bitmapCodec);
+    }
+
 }

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 
 /**
- * A codec implementation to encode/decode byte[] values.  The fixedLength parameter pertains
+ * A codec implementation to encode/decode byte[] values. The fixedLength parameter pertains
  * 
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
@@ -50,6 +50,11 @@ public final class BinaryCodec implements Codec<byte[]> {
     @Override
     public Encoding getEncoding() {
         return Encoding.BINARY;
+    }
+
+    @Override
+    public BinaryCodec clone() throws CloneNotSupportedException {
+        return new BinaryCodec(fixedLength);
     }
 
 }

@@ -32,7 +32,11 @@ public class TagVarCodec<T> extends VarCodec<T> {
     public TagVarCodec(Codec<T> codec, NumericCodec lengthCodec, NumericCodec tagCodec) {
         super(codec, lengthCodec);
         this.tagCodec = tagCodec;
+    }
 
+    private TagVarCodec(TagVarCodec<T> orig) throws CloneNotSupportedException {
+        super((VarCodec<T>) orig);
+        this.tagCodec = orig.tagCodec.clone();
     }
 
     public Integer decodeTag(ByteBuffer buf) {
@@ -41,6 +45,11 @@ public class TagVarCodec<T> extends VarCodec<T> {
 
     public void encodeTag(ByteBuffer buf, Integer tag) {
         tagCodec.encode(buf, Long.valueOf(tag));
+    }
+
+    @Override
+    public TagVarCodec<T> clone() throws CloneNotSupportedException {
+        return new TagVarCodec<T>(this);
     }
 
 }

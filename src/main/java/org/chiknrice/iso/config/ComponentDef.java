@@ -22,7 +22,7 @@ import org.chiknrice.iso.codec.Codec;
  * 
  */
 @SuppressWarnings("rawtypes")
-public class ComponentDef {
+public class ComponentDef implements Cloneable {
 
     private ComponentDef parent;
     private final Integer index;
@@ -59,6 +59,11 @@ public class ComponentDef {
 
     public void setParent(ComponentDef parent) {
         this.parent = parent;
+    }
+
+    @Override
+    public ComponentDef clone() throws CloneNotSupportedException {
+        return new ComponentDef(index, codec.clone(), mandatory);
     }
 
 }

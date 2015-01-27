@@ -135,4 +135,9 @@ public class NumericCodec implements Codec<Number> {
     public Encoding getEncoding() {
         return encoding;
     }
+
+    @Override
+    public NumericCodec clone() throws CloneNotSupportedException {
+        return new NumericCodec(encoding, fixedLength);
+    }
 }

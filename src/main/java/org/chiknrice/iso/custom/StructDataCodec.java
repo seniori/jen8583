@@ -115,9 +115,18 @@ public class StructDataCodec implements CustomCodec, Configurable {
         return sb.toString().getBytes(StandardCharsets.ISO_8859_1);
     }
 
+    private Map<String, String> params;
+
     @Override
     public void configure(Map<String, String> params) {
+        this.params = params;
         // Configure codec here
+    }
+
+    public CustomCodec clone() throws CloneNotSupportedException {
+        StructDataCodec codec = new StructDataCodec();
+        codec.configure(params);
+        return codec;
     }
 
 }

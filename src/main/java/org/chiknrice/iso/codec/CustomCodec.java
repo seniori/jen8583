@@ -19,10 +19,12 @@ package org.chiknrice.iso.codec;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
-public interface CustomCodec {
+public interface CustomCodec extends Cloneable {
 
     public Object decode(byte[] bytes);
 
     public byte[] encode(Object value);
+
+    public CustomCodec clone() throws CloneNotSupportedException;
 
 }
