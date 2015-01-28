@@ -52,9 +52,4 @@ public final class BinaryCodec implements Codec<byte[]> {
         return Encoding.BINARY;
     }
 
-    @Override
-    public BinaryCodec clone() throws CloneNotSupportedException {
-        return new BinaryCodec(fixedLength);
-    }
-
 }

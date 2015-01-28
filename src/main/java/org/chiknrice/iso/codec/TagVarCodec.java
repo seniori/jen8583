@@ -15,8 +15,6 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
@@ -34,22 +32,8 @@ public class TagVarCodec<T> extends VarCodec<T> {
         this.tagCodec = tagCodec;
     }
 
-    private TagVarCodec(TagVarCodec<T> orig) throws CloneNotSupportedException {
-        super((VarCodec<T>) orig);
-        this.tagCodec = orig.tagCodec.clone();
-    }
-
-    public Integer decodeTag(ByteBuffer buf) {
-        return tagCodec.decode(buf).intValue();
-    }
-
-    public void encodeTag(ByteBuffer buf, Integer tag) {
-        tagCodec.encode(buf, Long.valueOf(tag));
-    }
-
-    @Override
-    public TagVarCodec<T> clone() throws CloneNotSupportedException {
-        return new TagVarCodec<T>(this);
+    public NumericCodec getTagCodec() {
+        return tagCodec;
     }
 
 }

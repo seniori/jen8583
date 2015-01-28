@@ -89,9 +89,4 @@ public class DateTimeCodec implements Codec<Date> {
         return encoding;
     }
 
-    @Override
-    public DateTimeCodec clone() throws CloneNotSupportedException {
-        return new DateTimeCodec(dateTimePattern, timeZone, encoding);
-    }
-
 }

@@ -68,8 +68,40 @@ public final class AlphaCodec implements Codec<String> {
     }
 
     @Override
-    public AlphaCodec clone() throws CloneNotSupportedException {
-        return new AlphaCodec(charset, trim, leftJustified, fixedLength);
+    public int hashCode() {
+        int hash = getClass().hashCode();
+        if (charset != null) {
+            hash ^= charset.hashCode();
+        }
+        if (trim != null) {
+            hash ^= trim.hashCode();
+        }
+        if (leftJustified != null) {
+            hash ^= leftJustified.hashCode();
+        }
+        if (fixedLength != null) {
+            hash ^= fixedLength.hashCode();
+        }
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            AlphaCodec other = (AlphaCodec) o;
+            return eq(other.charset, charset) && eq(other.trim, trim) && eq(other.leftJustified, leftJustified)
+                    && eq(other.fixedLength, fixedLength);
+        }
+    }
+
+    private boolean eq(Object x, Object y) {
+        return x == null ? y == null : x.equals(y);
     }
 
 }

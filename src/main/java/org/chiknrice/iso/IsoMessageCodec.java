@@ -52,18 +52,19 @@ public class IsoMessageCodec {
      *            the bytes to decode.
      * @return the decoded IsoMessage.
      */
+    @SuppressWarnings("unchecked")
     public IsoMessage decode(byte[] isoBytes) {
         ByteBuffer buf = ByteBuffer.wrap(isoBytes);
         Map<Integer, Object> header = null;
-        if (config.getHeaderCodec() != null) {
-            header = (Map<Integer, Object>) config.getHeaderCodec().decode(buf);
+        if (config.getHeaderDef() != null) {
+            header = (Map<Integer, Object>) config.getHeaderDef().getCodec().decode(buf);
         }
         Integer mti = config.getMtiCodec().decode(buf).intValue();
         IsoMessage m = new IsoMessage(mti);
         if (header != null) {
             m.setHeader(new ArrayList<Object>(header.values()));
         }
-        Map<Integer, Object> fields = (Map<Integer, Object>) config.getFieldsCodec().get(mti).decode(buf);
+        Map<Integer, Object> fields = (Map<Integer, Object>) config.getFieldsDef().get(mti).getCodec().decode(buf);
         for (Entry<Integer, Object> field : fields.entrySet()) {
             m.setField(field.getKey(), field.getValue());
         }
@@ -77,13 +78,14 @@ public class IsoMessageCodec {
      *            the message to be encoded.
      * @return the encoded bytes.
      */
+    @SuppressWarnings("unchecked")
     public byte[] encode(IsoMessage msg) {
         ByteBuffer buf = ByteBuffer.allocate(0x7FFF);
-        if (config.getHeaderCodec() != null) {
-            config.getHeaderCodec().encode(buf, msg.getHeader());
+        if (config.getHeaderDef() != null) {
+            config.getHeaderDef().getCodec().encode(buf, msg.getHeader());
         }
         config.getMtiCodec().encode(buf, msg.getMti().longValue());
-        config.getFieldsCodec().get(msg.getMti()).encode(buf, msg.getFields());
+        config.getFieldsDef().get(msg.getMti()).getCodec().encode(buf, msg.getFields());
         byte[] encoded = new byte[buf.position()];
         System.arraycopy(buf.array(), 0, encoded, 0, encoded.length);
         return encoded;

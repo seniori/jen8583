@@ -58,7 +58,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
             if (def.getCodec() instanceof TagVarCodec) {
                 // nothing to do with a tag yet
-                Integer tag = ((TagVarCodec<?>) def.getCodec()).decodeTag(buf);
+                Integer tag = ((TagVarCodec<?>) def.getCodec()).getTagCodec().decode(buf).intValue();
                 if (tag != index) {
                     throw new CodecException(String.format("Unexpected TLV tag %d", tag));
                 }
@@ -66,7 +66,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
             ByteBuffer valueBuf;
             if (def.getCodec() instanceof VarCodec) {
-                int varLength = ((VarCodec<?>) def.getCodec()).decodeLength(buf);
+                int varLength = ((VarCodec<?>) def.getCodec()).getLengthCodec().decode(buf).intValue();
                 int limit = def.getCodec().getEncoding() == Encoding.BCD ? varLength / 2 + varLength % 2 : varLength;
                 valueBuf = buf.slice();
                 valueBuf.limit(limit);
@@ -96,7 +96,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
     }
 
     protected Bitmap decodeBitmap(ByteBuffer buf) {
-        return bitmapCodec != null ? bitmapCodec.decode(buf) : null;
+        return getBitmapCodec() != null ? getBitmapCodec().decode(buf) : null;
     }
 
     @SuppressWarnings("unchecked")
@@ -113,13 +113,13 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
             if (def.getCodec() instanceof TagVarCodec) {
                 // nothing to do with a codec yet
-                ((TagVarCodec<?>) def.getCodec()).encodeTag(buf, index);
+                ((TagVarCodec<?>) def.getCodec()).getTagCodec().encode(buf, Long.valueOf(index));
             }
 
             ByteBuffer valueBuf;
             if (def.getCodec() instanceof VarCodec) {
                 buf.mark();
-                ((VarCodec<?>) def.getCodec()).encodeLength(buf, 0);
+                ((VarCodec<?>) def.getCodec()).getLengthCodec().encode(buf, 0);
                 valueBuf = buf.slice();
             } else {
                 valueBuf = buf;
@@ -144,15 +144,15 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
                 } else {
                     valueLength = value.toString().length();
                 }
-                ((VarCodec<?>) def.getCodec()).encodeLength(buf, valueLength);
+                ((VarCodec<?>) def.getCodec()).getLengthCodec().encode(buf, valueLength);
                 buf.position(endPos);
             }
         }
     }
 
     protected void encodeBitmap(ByteBuffer buf, Map<Integer, Object> values) {
-        if (bitmapCodec != null) {
-            bitmapCodec.encode(buf, values.keySet());
+        if (getBitmapCodec() != null) {
+            getBitmapCodec().encode(buf, values.keySet());
         }
     }
 
@@ -165,16 +165,8 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
         return subComponentDefs;
     }
 
-    @Override
-    public CompositeCodec clone() throws CloneNotSupportedException {
-        Map<Integer, ComponentDef> subComponentDefsClone = new TreeMap<Integer, ComponentDef>();
-        for (Entry<Integer, ComponentDef> entry : this.subComponentDefs.entrySet()) {
-            Integer index = entry.getKey();
-            ComponentDef subComponentDef = entry.getValue().clone();
-            subComponentDefsClone.put(index, subComponentDef);
-        }
-        // TODO: should bitmapCodec be cloned? 
-        return new CompositeCodec(subComponentDefsClone, bitmapCodec);
+    public BitmapCodec getBitmapCodec() {
+        return bitmapCodec;
     }
 
 }

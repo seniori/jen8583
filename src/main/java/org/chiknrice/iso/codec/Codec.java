@@ -28,7 +28,7 @@ import org.chiknrice.iso.config.ComponentDef.Encoding;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
-public interface Codec<T> extends Cloneable {
+public interface Codec<T> {
 
     /**
      * The implementation should define how the value T should be decoded from the ByteBuffer provided. The
@@ -55,13 +55,5 @@ public interface Codec<T> extends Cloneable {
      * @return the encoding defined for the value.
      */
     public Encoding getEncoding();
-
-    /**
-     * The implementation should create a new codec and set primitive fields to its own fields and the objects to their
-     * clones.
-     * 
-     * @return
-     */
-    public Codec<T> clone() throws CloneNotSupportedException;
 
 }

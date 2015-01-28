@@ -15,7 +15,12 @@
  */
 package org.chiknrice.iso.config;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.chiknrice.iso.codec.Codec;
+import org.chiknrice.iso.codec.CompositeCodec;
+import org.chiknrice.iso.codec.VarCodec;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -25,14 +30,25 @@ import org.chiknrice.iso.codec.Codec;
 public class ComponentDef implements Cloneable {
 
     private ComponentDef parent;
-    private final Integer index;
     private final Codec codec;
     private final boolean mandatory;
 
-    public ComponentDef(Integer index, Codec codec, boolean mandatory) {
-        this.index = index;
+    public ComponentDef(Codec codec, boolean mandatory) {
         this.codec = codec;
         this.mandatory = mandatory;
+        CompositeCodec composite = null;
+        if (codec instanceof VarCodec) {
+            if (((VarCodec) codec).getCodec() instanceof CompositeCodec) {
+                composite = (CompositeCodec) ((VarCodec) codec).getCodec();
+            }
+        } else if (codec instanceof CompositeCodec) {
+            composite = (CompositeCodec) codec;
+        }
+        if (composite != null) {
+            for (ComponentDef child : composite.getSubComponentDefs().values()) {
+                child.parent = this;
+            }
+        }
     }
 
     public Codec getCodec() {
@@ -49,21 +65,29 @@ public class ComponentDef implements Cloneable {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
         if (parent != null) {
-            sb.append(parent.toString()).append('.');
+            StringBuilder sb = new StringBuilder();
+            sb.append(parent.toString());
+            if (sb.length() > 0) {
+                sb.append('.');
+            }
+            Map<Integer, ComponentDef> map;
+            if (parent.getCodec() instanceof VarCodec) {
+                map = ((CompositeCodec) ((VarCodec) parent.getCodec()).getCodec()).getSubComponentDefs();
+            } else {
+                map = ((CompositeCodec) parent.getCodec()).getSubComponentDefs();
+            }
+            for (Entry<Integer, ComponentDef> defEntry : map.entrySet()) {
+                ComponentDef def = defEntry.getValue();
+                if (def == this) {
+                    sb.append(defEntry.getKey());
+                    break;
+                }
+            }
+            return sb.toString();
+        } else {
+            return "";
         }
-        sb.append(index);
-        return sb.toString();
-    }
-
-    public void setParent(ComponentDef parent) {
-        this.parent = parent;
-    }
-
-    @Override
-    public ComponentDef clone() throws CloneNotSupportedException {
-        return new ComponentDef(index, codec.clone(), mandatory);
     }
 
 }

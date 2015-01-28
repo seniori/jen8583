@@ -53,9 +53,4 @@ public final class CustomCodecAdapter implements Codec<Object> {
         return Encoding.BINARY;
     }
 
-    @Override
-    public CustomCodecAdapter clone() throws CloneNotSupportedException {
-        return new CustomCodecAdapter(customCodec.clone(), fixedLength);
-    }
-
 }

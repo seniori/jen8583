@@ -18,22 +18,35 @@ package org.chiknrice.iso;
 import static org.junit.Assert.assertEquals;
 
 import org.chiknrice.iso.codec.CompositeCodec;
+import org.chiknrice.iso.codec.VarCodec;
+import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.config.IsoMessageDef;
 import org.junit.Test;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- *
+ * 
  */
 public class TestMessageExtension extends BaseTest {
 
     @Test
     public void testClone() {
         IsoMessageDef def = IsoMessageDef.build("test.xml");
-        CompositeCodec codec100 = def.getFieldsCodec().get(100);
-        CompositeCodec codec110 = def.getFieldsCodec().get(110);
-        assertEquals(codec100.getEncoding(), codec110.getEncoding());
-        assertEquals(codec100.getSubComponentDefs().get(5), codec110.getSubComponentDefs().get(5));
+        ComponentDef def100 = def.getFieldsDef().get(100);
+        ComponentDef def110 = def.getFieldsDef().get(110);
+
+        assertEquals(def100.getCodec(), def110.getCodec());
+        assertEquals(((CompositeCodec) def100.getCodec()).getSubComponentDefs().get(5),
+                ((CompositeCodec) def110.getCodec()).getSubComponentDefs().get(5));
+
+    }
+
+    @Test
+    public void testToString() {
+        IsoMessageDef def = IsoMessageDef.build("test.xml");
+        ComponentDef codec100 = def.getFieldsDef().get(100);
+        assertEquals("6.2", ((CompositeCodec) ((VarCodec<?>) ((CompositeCodec) codec100.getCodec())
+                .getSubComponentDefs().get(6).getCodec()).getCodec()).getSubComponentDefs().get(2).toString());
     }
 
 }

@@ -33,11 +33,6 @@ public class VarCodec<T> implements Codec<T> {
         this.lengthCodec = lengthCodec;
     }
 
-    protected VarCodec(VarCodec<T> orig) throws CloneNotSupportedException {
-        this.codec = orig.codec.clone();
-        this.lengthCodec = orig.lengthCodec.clone();
-    }
-
     @Override
     public T decode(ByteBuffer buf) {
         return codec.decode(buf);
@@ -50,20 +45,15 @@ public class VarCodec<T> implements Codec<T> {
 
     @Override
     public Encoding getEncoding() {
-        return codec.getEncoding();
+        return getCodec().getEncoding();
     }
 
-    public Integer decodeLength(ByteBuffer buf) {
-        return lengthCodec.decode(buf).intValue();
+    public Codec<T> getCodec() {
+        return codec;
     }
 
-    public void encodeLength(ByteBuffer buf, Integer length) {
-        lengthCodec.encode(buf, Long.valueOf(length));
-    }
-
-    @Override
-    public VarCodec<T> clone() throws CloneNotSupportedException {
-        return new VarCodec<T>(this);
+    public NumericCodec getLengthCodec() {
+        return lengthCodec;
     }
 
 }
