@@ -62,7 +62,7 @@ public class IsoMessageCodec {
         Integer mti = config.getMtiCodec().decode(buf).intValue();
         IsoMessage m = new IsoMessage(mti);
         if (header != null) {
-            m.setHeader(new ArrayList<Object>(header.values()));
+            m.setHeader(new ArrayList<>(header.values()));
         }
         Map<Integer, Object> fields = (Map<Integer, Object>) config.getFieldsDef().get(mti).getCodec().decode(buf);
         for (Entry<Integer, Object> field : fields.entrySet()) {

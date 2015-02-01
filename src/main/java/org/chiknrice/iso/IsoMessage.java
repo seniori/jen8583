@@ -44,9 +44,9 @@ public class IsoMessage {
     private final Map<Integer, Object> fields;
 
     public IsoMessage(int mti) {
-        header = new TreeMap<Integer, Object>();
+        header = new TreeMap<>();
         this.mti = mti;
-        fields = new TreeMap<Integer, Object>();
+        fields = new TreeMap<>();
     }
 
     /**
@@ -148,7 +148,7 @@ public class IsoMessage {
     }
 
     public Map<String, Object> getAllFields() {
-        Map<String, Object> fields = new LinkedHashMap<String, Object>();
+        Map<String, Object> fields = new LinkedHashMap<>();
         recordFieldMap(null, this.fields, fields);
         return fields;
     }
@@ -208,7 +208,7 @@ public class IsoMessage {
                     Integer key = Integer.valueOf(indexes[i]);
                     Object currentValue = components.get(key);
                     if (currentValue == null) {
-                        currentValue = new TreeMap<Integer, Object>();
+                        currentValue = new TreeMap<>();
                         components.put(key, currentValue);
                     }
 

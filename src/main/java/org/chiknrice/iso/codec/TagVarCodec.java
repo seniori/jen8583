@@ -15,6 +15,9 @@
  */
 package org.chiknrice.iso.codec;
 
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
@@ -34,6 +37,25 @@ public class TagVarCodec<T> extends VarCodec<T> {
 
     public NumericCodec getTagCodec() {
         return tagCodec;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, tagCodec) ^ super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            TagVarCodec<?> other = (TagVarCodec<?>) o;
+            return EqualsBuilder.newInstance(other.tagCodec, tagCodec).isEqual() && super.equals(other);
+        }
     }
 
 }

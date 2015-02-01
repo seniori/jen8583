@@ -200,7 +200,7 @@ public final class IsoMessageDef {
          */
         private Map<Integer, ComponentDef> buildFieldsCodecs(BitmapCodec bitmapCodec) {
             NodeList messageList = doc.getElementsByTagName("message");
-            Map<Integer, ComponentDef> defs = new TreeMap<Integer, ComponentDef>();
+            Map<Integer, ComponentDef> defs = new TreeMap<>();
 
             for (int i = 0; i < messageList.getLength(); i++) {
                 Element messageDef = (Element) messageList.item(i);
@@ -221,7 +221,7 @@ public final class IsoMessageDef {
             NodeList nodes = ce.getChildNodes();
             Map<Integer, ComponentDef> fieldDefs = null;
             if (nodes.getLength() > 0) {
-                fieldDefs = new TreeMap<Integer, ComponentDef>();
+                fieldDefs = new TreeMap<>();
                 for (int i = 0; i < nodes.getLength(); i++) {
                     Node n = nodes.item(i);
                     if (n.getNodeType() == Node.ELEMENT_NODE) {
@@ -247,7 +247,7 @@ public final class IsoMessageDef {
             NodeList nodes = ce.getChildNodes();
             Map<Integer, ComponentDef> fieldDefs = null;
             if (nodes.getLength() > 0) {
-                fieldDefs = new TreeMap<Integer, ComponentDef>();
+                fieldDefs = new TreeMap<>();
                 int index = 1;
                 for (int i = 0; i < nodes.getLength(); i++) {
                     Node n = nodes.item(i);
@@ -276,10 +276,10 @@ public final class IsoMessageDef {
 
                 NumericCodec lengthCodec = buildVarLengthCodec(e);
                 if (tagDigits != null) {
-                    codec = new TagVarCodec<Map<Integer, Object>>(compositeCodec, lengthCodec, new NumericCodec(
-                            getEncoding(e, "tag-encoding", defaultTagEncoding), tagDigits));
+                    codec = new TagVarCodec<>(compositeCodec, lengthCodec, new NumericCodec(getEncoding(e,
+                            "tag-encoding", defaultTagEncoding), tagDigits));
                 } else {
-                    codec = new VarCodec<Map<Integer, Object>>(compositeCodec, lengthCodec);
+                    codec = new VarCodec<>(compositeCodec, lengthCodec);
                 }
                 break;
             case "composite":
@@ -290,14 +290,14 @@ public final class IsoMessageDef {
                         .getAttribute("length")));
                 break;
             case "alpha-var":
-                codec = new VarCodec<String>(new AlphaCodec(getCharset(e), isTrim(e)), buildVarLengthCodec(e));
+                codec = new VarCodec<>(new AlphaCodec(getCharset(e), isTrim(e)), buildVarLengthCodec(e));
                 break;
             case "numeric":
                 codec = new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding), Integer.valueOf(e
                         .getAttribute("length")));
                 break;
             case "numeric-var":
-                codec = new VarCodec<Number>(new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding)),
+                codec = new VarCodec<>(new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding)),
                         buildVarLengthCodec(e));
                 break;
             case "date":
@@ -308,7 +308,7 @@ public final class IsoMessageDef {
                 codec = new BinaryCodec(Integer.valueOf(e.getAttribute("length")));
                 break;
             case "binary-var":
-                codec = new VarCodec<byte[]>(new BinaryCodec(), buildVarLengthCodec(e));
+                codec = new VarCodec<>(new BinaryCodec(), buildVarLengthCodec(e));
                 break;
             case "custom":
             case "custom-var":
@@ -329,7 +329,7 @@ public final class IsoMessageDef {
                     CustomCodec customCodec = (CustomCodec) customClass.newInstance();
 
                     NodeList paramNodes = e.getChildNodes();
-                    Map<String, String> params = new HashMap<String, String>();
+                    Map<String, String> params = new HashMap<>();
                     for (int i = 0; i < paramNodes.getLength(); i++) {
                         Node n = paramNodes.item(i);
                         if (n.getNodeType() == Node.ELEMENT_NODE) {
@@ -343,7 +343,7 @@ public final class IsoMessageDef {
 
                     Codec<Object> codec = new CustomCodecAdapter(customCodec);
                     if ("custom-var".equals(e.getTagName())) {
-                        return new VarCodec<Object>(codec, buildVarLengthCodec(e));
+                        return new VarCodec<>(codec, buildVarLengthCodec(e));
                     }
                     return codec;
                 } else {
@@ -405,7 +405,7 @@ public final class IsoMessageDef {
 
         private void buildFieldsCodecsExtension(Map<Integer, ComponentDef> existingCodecs, BitmapCodec bitmapCodec) {
             NodeList messageExtList = doc.getElementsByTagName("message-ext");
-            Map<Integer, ComponentDef> extensions = new TreeMap<Integer, ComponentDef>();
+            Map<Integer, ComponentDef> extensions = new TreeMap<>();
             for (int i = 0; i < messageExtList.getLength(); i++) {
                 Element messageDef = (Element) messageExtList.item(i);
                 Integer mtiExisting = getInteger(messageDef, "extends");
@@ -448,8 +448,7 @@ public final class IsoMessageDef {
         private TagVarCodec<?> cloneTagVarCodec(TagVarCodec<?> tagVarCodec) {
             if (tagVarCodec.getCodec() instanceof CompositeCodec) {
                 CompositeCodec compositeCodec = cloneComposite((CompositeCodec) tagVarCodec.getCodec());
-                return new TagVarCodec<Map<Integer, Object>>(compositeCodec, tagVarCodec.getLengthCodec(),
-                        tagVarCodec.getTagCodec());
+                return new TagVarCodec<>(compositeCodec, tagVarCodec.getLengthCodec(), tagVarCodec.getTagCodec());
             } else {
                 return tagVarCodec;
             }
@@ -458,7 +457,7 @@ public final class IsoMessageDef {
         private VarCodec<?> cloneVarCodec(VarCodec<?> varCodec) {
             if (varCodec.getCodec() instanceof CompositeCodec) {
                 CompositeCodec compositeCodec = cloneComposite((CompositeCodec) varCodec.getCodec());
-                return new VarCodec<Map<Integer, Object>>(compositeCodec, varCodec.getLengthCodec());
+                return new VarCodec<>(compositeCodec, varCodec.getLengthCodec());
             } else {
                 return varCodec;
             }

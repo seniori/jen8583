@@ -21,13 +21,15 @@ import java.util.Map.Entry;
 import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.codec.CompositeCodec;
 import org.chiknrice.iso.codec.VarCodec;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
 @SuppressWarnings("rawtypes")
-public class ComponentDef implements Cloneable {
+public class ComponentDef {
 
     private ComponentDef parent;
     private final Codec codec;
@@ -87,6 +89,25 @@ public class ComponentDef implements Cloneable {
             return sb.toString();
         } else {
             return "";
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, codec, mandatory);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            ComponentDef other = (ComponentDef) o;
+            return EqualsBuilder.newInstance(other.codec, codec).append(other.mandatory, mandatory).isEqual();
         }
     }
 

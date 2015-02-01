@@ -16,6 +16,7 @@
 package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import org.chiknrice.iso.codec.CompositeCodec;
 import org.chiknrice.iso.codec.VarCodec;
@@ -34,11 +35,13 @@ public class TestMessageExtension extends BaseTest {
         IsoMessageDef def = IsoMessageDef.build("test.xml");
         ComponentDef def100 = def.getFieldsDef().get(100);
         ComponentDef def110 = def.getFieldsDef().get(110);
+        ComponentDef def200 = def.getFieldsDef().get(200);
 
+        assertNotEquals(def100, def110);
+        assertEquals(def100, def200);
         assertEquals(def100.getCodec(), def110.getCodec());
         assertEquals(((CompositeCodec) def100.getCodec()).getSubComponentDefs().get(5),
                 ((CompositeCodec) def110.getCodec()).getSubComponentDefs().get(5));
-
     }
 
     @Test

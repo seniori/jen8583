@@ -51,7 +51,7 @@ public class StructDataCodec implements CustomCodec, Configurable {
         String key = null;
         String val = null;
 
-        Map<String, String> map = new LinkedHashMap<String, String>();
+        Map<String, String> map = new LinkedHashMap<>();
 
         try {
             while ((lengthRead = reader.read(buff, 0, lengthToRead)) != -1) {

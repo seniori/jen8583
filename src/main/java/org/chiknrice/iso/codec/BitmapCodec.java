@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 import org.chiknrice.iso.util.Hex;
 
 /**
@@ -93,7 +95,7 @@ public class BitmapCodec {
         if (bitsParam instanceof TreeSet) {
             bits = (TreeSet<Integer>) bitsParam;
         } else {
-            bits = new TreeSet<Integer>(bitsParam);
+            bits = new TreeSet<>(bitsParam);
         }
         switch (type) {
         case BINARY:
@@ -133,6 +135,25 @@ public class BitmapCodec {
         return (bit - 1) / 8;
     }
 
+    @Override
+    public int hashCode() {
+        return Hash.build(this, type);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            BitmapCodec other = (BitmapCodec) o;
+            return EqualsBuilder.newInstance(other.type, type).isEqual();
+        }
+    }
+
     public static class Bitmap {
 
         public static enum Type {
@@ -164,7 +185,7 @@ public class BitmapCodec {
 
         @Override
         public String toString() {
-            Set<Integer> setBits = new TreeSet<Integer>();
+            Set<Integer> setBits = new TreeSet<>();
             int bits = bytes.length * 8;
             for (int i = 1; i <= bits; i++) {
                 if (isSet(i)) {
@@ -172,6 +193,25 @@ public class BitmapCodec {
                 }
             }
             return setBits.toString();
+        }
+
+        @Override
+        public int hashCode() {
+            return Hash.build(this, bytes);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) {
+                return false;
+            } else if (o == this) {
+                return true;
+            } else if (o.getClass() != getClass()) {
+                return false;
+            } else {
+                Bitmap other = (Bitmap) o;
+                return EqualsBuilder.newInstance(other.bytes, bytes).isEqual();
+            }
         }
     }
 

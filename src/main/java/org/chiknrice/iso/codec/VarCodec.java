@@ -18,6 +18,8 @@ package org.chiknrice.iso.codec;
 import java.nio.ByteBuffer;
 
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -54,6 +56,25 @@ public class VarCodec<T> implements Codec<T> {
 
     public NumericCodec getLengthCodec() {
         return lengthCodec;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, codec, lengthCodec);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            VarCodec<?> other = (VarCodec<?>) o;
+            return EqualsBuilder.newInstance(other.codec, codec).append(other.lengthCodec, lengthCodec).isEqual();
+        }
     }
 
 }

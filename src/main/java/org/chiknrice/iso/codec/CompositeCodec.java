@@ -23,6 +23,8 @@ import java.util.TreeMap;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
 import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -44,7 +46,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
     public Map<Integer, Object> decode(ByteBuffer buf) {
         Bitmap bitmap = decodeBitmap(buf);
-        Map<Integer, Object> values = new TreeMap<Integer, Object>();
+        Map<Integer, Object> values = new TreeMap<>();
         for (Entry<Integer, ComponentDef> defEntry : getSubComponentDefs().entrySet()) {
             Integer index = defEntry.getKey();
             ComponentDef def = defEntry.getValue();
@@ -167,6 +169,26 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
     public BitmapCodec getBitmapCodec() {
         return bitmapCodec;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, subComponentDefs, bitmapCodec);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            CompositeCodec other = (CompositeCodec) o;
+            return EqualsBuilder.newInstance(other.subComponentDefs, subComponentDefs)
+                    .append(other.bitmapCodec, bitmapCodec).isEqual();
+        }
     }
 
 }

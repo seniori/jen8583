@@ -18,6 +18,8 @@ package org.chiknrice.iso.codec;
 import java.nio.ByteBuffer;
 
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -51,6 +53,26 @@ public final class CustomCodecAdapter implements Codec<Object> {
     @Override
     public Encoding getEncoding() {
         return Encoding.BINARY;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, customCodec, fixedLength);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            CustomCodecAdapter other = (CustomCodecAdapter) o;
+            return EqualsBuilder.newInstance(other.customCodec, customCodec).append(other.fixedLength, fixedLength)
+                    .isEqual();
+        }
     }
 
 }

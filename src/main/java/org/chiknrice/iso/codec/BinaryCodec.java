@@ -18,6 +18,8 @@ package org.chiknrice.iso.codec;
 import java.nio.ByteBuffer;
 
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * A codec implementation to encode/decode byte[] values. The fixedLength parameter pertains
@@ -50,6 +52,25 @@ public final class BinaryCodec implements Codec<byte[]> {
     @Override
     public Encoding getEncoding() {
         return Encoding.BINARY;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, fixedLength);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            BinaryCodec other = (BinaryCodec) o;
+            return EqualsBuilder.newInstance(other.fixedLength, fixedLength).isEqual();
+        }
     }
 
 }

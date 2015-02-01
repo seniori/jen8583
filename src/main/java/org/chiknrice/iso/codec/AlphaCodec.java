@@ -20,6 +20,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * A codec implementation for alphanumeric fields. It accepts a character which would be used to encode/decode the
@@ -69,20 +71,7 @@ public final class AlphaCodec implements Codec<String> {
 
     @Override
     public int hashCode() {
-        int hash = getClass().hashCode();
-        if (charset != null) {
-            hash ^= charset.hashCode();
-        }
-        if (trim != null) {
-            hash ^= trim.hashCode();
-        }
-        if (leftJustified != null) {
-            hash ^= leftJustified.hashCode();
-        }
-        if (fixedLength != null) {
-            hash ^= fixedLength.hashCode();
-        }
-        return hash;
+        return Hash.build(this, charset, trim, leftJustified, fixedLength);
     }
 
     @Override
@@ -95,13 +84,9 @@ public final class AlphaCodec implements Codec<String> {
             return false;
         } else {
             AlphaCodec other = (AlphaCodec) o;
-            return eq(other.charset, charset) && eq(other.trim, trim) && eq(other.leftJustified, leftJustified)
-                    && eq(other.fixedLength, fixedLength);
+            return EqualsBuilder.newInstance(other.charset, charset).append(other.trim, trim)
+                    .append(other.leftJustified, leftJustified).append(other.fixedLength, fixedLength).isEqual();
         }
-    }
-
-    private boolean eq(Object x, Object y) {
-        return x == null ? y == null : x.equals(y);
     }
 
 }

@@ -43,6 +43,7 @@
         </remove>
     </message-ext>
 
+    <message-ext extends="100" mti="200"></message-ext>
 
 </iso>
     

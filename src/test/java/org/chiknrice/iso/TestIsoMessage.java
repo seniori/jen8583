@@ -22,7 +22,6 @@ import static org.junit.Assert.assertThat;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.chiknrice.iso.IsoMessage;
 import org.junit.Test;
 
 /**
@@ -34,9 +33,9 @@ public class TestIsoMessage extends BaseTest {
     @Test
     public void testValidFieldExpression() {
         IsoMessage m = new IsoMessage(100);
-        Map<Integer, Object> f1 = new TreeMap<Integer, Object>();
+        Map<Integer, Object> f1 = new TreeMap<>();
         m.setField(1, f1);
-        Map<Integer, Object> f12 = new TreeMap<Integer, Object>();
+        Map<Integer, Object> f12 = new TreeMap<>();
         f1.put(2, f12);
         String f123 = "A Value";
         f12.put(3, f123);
@@ -52,11 +51,11 @@ public class TestIsoMessage extends BaseTest {
     @Test
     public void testNotExistingField() {
         IsoMessage m = new IsoMessage(100);
-        Map<Integer, Object> f1 = new TreeMap<Integer, Object>();
+        Map<Integer, Object> f1 = new TreeMap<>();
         m.setField(1, f1);
-        Map<Integer, Object> f12 = new TreeMap<Integer, Object>();
+        Map<Integer, Object> f12 = new TreeMap<>();
         f1.put(2, f12);
-        Map<Integer, Object> f123 = new TreeMap<Integer, Object>();
+        Map<Integer, Object> f123 = new TreeMap<>();
         f12.put(3, f123);
 
         Map<Integer, Object> returned = m.getField("1.3.5");

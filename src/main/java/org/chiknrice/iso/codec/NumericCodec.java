@@ -22,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.Binary;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -134,6 +136,25 @@ public class NumericCodec implements Codec<Number> {
     @Override
     public Encoding getEncoding() {
         return encoding;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, encoding, fixedLength);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            NumericCodec other = (NumericCodec) o;
+            return EqualsBuilder.newInstance(other.encoding, encoding).append(other.fixedLength, fixedLength).isEqual();
+        }
     }
 
 }

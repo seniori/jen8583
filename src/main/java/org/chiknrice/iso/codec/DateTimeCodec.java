@@ -24,6 +24,8 @@ import java.util.TimeZone;
 
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.Bcd;
+import org.chiknrice.iso.util.EqualsBuilder;
+import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -31,18 +33,18 @@ import org.chiknrice.iso.util.Bcd;
  */
 public class DateTimeCodec implements Codec<Date> {
 
-    private final String dateTimePattern;
+    private final String pattern;
     private final TimeZone timeZone;
     private final Encoding encoding;
 
-    public DateTimeCodec(String dateTimePattern, TimeZone timeZone, Encoding encoding) {
-        this.dateTimePattern = dateTimePattern;
+    public DateTimeCodec(String pattern, TimeZone timeZone, Encoding encoding) {
+        this.pattern = pattern;
         this.timeZone = timeZone;
         this.encoding = encoding;
     }
 
     public Date decode(ByteBuffer buf) {
-        int length = dateTimePattern.length();
+        int length = pattern.length();
         byte[] bytes = new byte[Encoding.BCD == encoding ? (length / 2 + length % 2) : length];
         buf.get(bytes);
         String dateTimeString;
@@ -57,7 +59,7 @@ public class DateTimeCodec implements Codec<Date> {
             throw new RuntimeException(String.format("Unsupported encoding %s", encoding));
         }
 
-        SimpleDateFormat format = new SimpleDateFormat(dateTimePattern);
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
         format.setLenient(false);
         format.setTimeZone(timeZone);
         try {
@@ -68,7 +70,7 @@ public class DateTimeCodec implements Codec<Date> {
     }
 
     public void encode(ByteBuffer buf, Date value) {
-        SimpleDateFormat format = new SimpleDateFormat(dateTimePattern);
+        SimpleDateFormat format = new SimpleDateFormat(pattern);
         format.setLenient(false);
         format.setTimeZone(timeZone);
         String stringValue = format.format(value);
@@ -87,6 +89,26 @@ public class DateTimeCodec implements Codec<Date> {
     @Override
     public Encoding getEncoding() {
         return encoding;
+    }
+
+    @Override
+    public int hashCode() {
+        return Hash.build(this, pattern, timeZone, encoding);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        } else if (o == this) {
+            return true;
+        } else if (o.getClass() != getClass()) {
+            return false;
+        } else {
+            DateTimeCodec other = (DateTimeCodec) o;
+            return EqualsBuilder.newInstance(other.pattern, pattern).append(other.timeZone, timeZone)
+                    .append(other.encoding, encoding).isEqual();
+        }
     }
 
 }
