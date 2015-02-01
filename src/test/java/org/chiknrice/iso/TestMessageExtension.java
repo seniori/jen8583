@@ -17,8 +17,13 @@ package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
+
+import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.codec.CompositeCodec;
+import org.chiknrice.iso.codec.NumericCodec;
 import org.chiknrice.iso.codec.VarCodec;
 import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.config.IsoMessageDef;
@@ -39,9 +44,17 @@ public class TestMessageExtension extends BaseTest {
 
         assertNotEquals(def100, def110);
         assertEquals(def100, def200);
-        assertEquals(def100.getCodec(), def110.getCodec());
-        assertEquals(((CompositeCodec) def100.getCodec()).getSubComponentDefs().get(5),
-                ((CompositeCodec) def110.getCodec()).getSubComponentDefs().get(5));
+        //assertEquals(def100.getCodec(), def110.getCodec());
+//        assertEquals(((CompositeCodec) def100.getCodec()).getSubComponentDefs().get(5),
+//                ((CompositeCodec) def110.getCodec()).getSubComponentDefs().get(5));
+        Codec<?> codec = def110.getCodec();
+        assertTrue(codec instanceof CompositeCodec);
+        Map<Integer, ComponentDef> subComponents = ((CompositeCodec)codec).getSubComponentDefs();
+        codec = subComponents.get(6).getCodec();
+        codec = ((VarCodec<?>)codec).getCodec();
+        subComponents = ((CompositeCodec)codec).getSubComponentDefs();
+        assertEquals(2, subComponents.size());
+        assertTrue(subComponents.get(1).getCodec() instanceof NumericCodec);
     }
 
     @Test

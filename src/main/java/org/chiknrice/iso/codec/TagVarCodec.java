@@ -26,10 +26,6 @@ public class TagVarCodec<T> extends VarCodec<T> {
 
     private final NumericCodec tagCodec;
 
-    public TagVarCodec(Codec<T> codec, NumericCodec lengthCodec) {
-        this(codec, lengthCodec, null);
-    }
-
     public TagVarCodec(Codec<T> codec, NumericCodec lengthCodec, NumericCodec tagCodec) {
         super(codec, lengthCodec);
         this.tagCodec = tagCodec;

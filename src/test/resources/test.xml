@@ -29,18 +29,24 @@
     </message>
 
     <message-ext extends="100" mti="110">
+
         <set>
+
             <composite-var index="5" length="2">
                 <alpha index="2" length="2" />
                 <alpha index="3" length="3" />
             </composite-var>
+            <composite-var index="6" length="2" bitmap-type="BINARY">
+                <numeric index="1" length="2" />
+            </composite-var>
         </set>
-        <remove>
+
+        <!-- <remove>
             <field index="4" />
             <composite index="6">
                 <field index="1" />
             </composite>
-        </remove>
+        </remove> -->
     </message-ext>
 
     <message-ext extends="100" mti="200"></message-ext>

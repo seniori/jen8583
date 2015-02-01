@@ -16,7 +16,9 @@
 package org.chiknrice.iso.config;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
@@ -44,6 +46,7 @@ import org.chiknrice.iso.codec.NumericCodec;
 import org.chiknrice.iso.codec.TagVarCodec;
 import org.chiknrice.iso.codec.VarCodec;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -119,44 +122,39 @@ public final class IsoMessageDef {
 
             Element defaults = (Element) doc.getElementsByTagName("defaults").item(0);
 
-            NodeList nodes = defaults.getChildNodes();
-            for (int i = 0; i < nodes.getLength(); i++) {
-                Node n = nodes.item(i);
-                if (n.getNodeType() == Node.ELEMENT_NODE) {
-                    Element e = (Element) n;
-                    switch (e.getTagName()) {
-                    case "var":
-                        defaultTagEncoding = Encoding.valueOf(e.getAttribute("tag-encoding"));
-                        LOG.info("Default tag encoding: {}", defaultTagEncoding);
-                        defaultLengthEncoding = Encoding.valueOf(e.getAttribute("length-encoding"));
-                        LOG.info("Default length encoding: {}", defaultLengthEncoding);
-                        break;
-                    case "alpha":
-                        String charsetName = e.getAttribute("charset");
-                        defaultCharset = "SYSTEM".equals(charsetName) ? Charset.defaultCharset() : Charset
-                                .forName(charsetName);
-                        LOG.info("Default charset: {}", defaultCharset);
-                        defaultTrim = Boolean.valueOf(e.getAttribute("trim"));
-                        LOG.info("Default trim: {}", defaultTrim);
-                        defaultLeftJustified = "LEFT".equals(e.getAttribute("justified"));
-                        LOG.info("Default {} justified", defaultLeftJustified ? "LEFT" : "RIGHT");
-                        break;
-                    case "numeric":
-                        defaultNumericEncoding = Encoding.valueOf(e.getAttribute("encoding"));
-                        LOG.info("Default numeric encoding: {}", defaultNumericEncoding);
-                        break;
-                    case "date":
-                        defaultDateEncoding = Encoding.valueOf(e.getAttribute("encoding"));
-                        LOG.info("Default date encoding: {}", defaultDateEncoding);
-                        String tzDefault = e.getAttribute("timezone");
-                        defaultTimeZone = "SYSTEM".equals(tzDefault) ? TimeZone.getDefault() : TimeZone
-                                .getTimeZone(tzDefault);
-                        LOG.info("Default timezone: {}", defaultTimeZone.getID());
-                        break;
-                    case "ordinality":
-                        defaultMandatory = Boolean.valueOf(e.getAttribute("mandatory"));
-                        break;
-                    }
+            for (Element e : getSubElements(defaults)) {
+                switch (e.getTagName()) {
+                case "var":
+                    defaultTagEncoding = Encoding.valueOf(e.getAttribute("tag-encoding"));
+                    LOG.info("Default tag encoding: {}", defaultTagEncoding);
+                    defaultLengthEncoding = Encoding.valueOf(e.getAttribute("length-encoding"));
+                    LOG.info("Default length encoding: {}", defaultLengthEncoding);
+                    break;
+                case "alpha":
+                    String charsetName = e.getAttribute("charset");
+                    defaultCharset = "SYSTEM".equals(charsetName) ? Charset.defaultCharset() : Charset
+                            .forName(charsetName);
+                    LOG.info("Default charset: {}", defaultCharset);
+                    defaultTrim = Boolean.valueOf(e.getAttribute("trim"));
+                    LOG.info("Default trim: {}", defaultTrim);
+                    defaultLeftJustified = "LEFT".equals(e.getAttribute("justified"));
+                    LOG.info("Default {} justified", defaultLeftJustified ? "LEFT" : "RIGHT");
+                    break;
+                case "numeric":
+                    defaultNumericEncoding = Encoding.valueOf(e.getAttribute("encoding"));
+                    LOG.info("Default numeric encoding: {}", defaultNumericEncoding);
+                    break;
+                case "date":
+                    defaultDateEncoding = Encoding.valueOf(e.getAttribute("encoding"));
+                    LOG.info("Default date encoding: {}", defaultDateEncoding);
+                    String tzDefault = e.getAttribute("timezone");
+                    defaultTimeZone = "SYSTEM".equals(tzDefault) ? TimeZone.getDefault() : TimeZone
+                            .getTimeZone(tzDefault);
+                    LOG.info("Default timezone: {}", defaultTimeZone.getID());
+                    break;
+                case "ordinality":
+                    defaultMandatory = Boolean.valueOf(e.getAttribute("mandatory"));
+                    break;
                 }
             }
 
@@ -218,21 +216,17 @@ public final class IsoMessageDef {
          * @return
          */
         private Map<Integer, ComponentDef> buildVarComponents(Element ce) {
-            NodeList nodes = ce.getChildNodes();
+            List<Element> fields = getSubElements(ce);
             Map<Integer, ComponentDef> fieldDefs = null;
-            if (nodes.getLength() > 0) {
+            if (fields.size() > 0) {
                 fieldDefs = new TreeMap<>();
-                for (int i = 0; i < nodes.getLength(); i++) {
-                    Node n = nodes.item(i);
-                    if (n.getNodeType() == Node.ELEMENT_NODE) {
-                        Element e = (Element) n;
-                        Integer index = Integer.valueOf(e.getAttribute("index"));
-                        ComponentDef def = buildComponent(e, isMandatory(e));
-                        if (fieldDefs.containsKey(index)) {
-                            throw new RuntimeException(String.format("Duplicate field index: %d", index));
-                        }
-                        fieldDefs.put(index, def);
+                for (Element e : fields) {
+                    Integer index = Integer.valueOf(e.getAttribute("index"));
+                    ComponentDef def = buildComponent(e, isMandatory(e));
+                    if (fieldDefs.containsKey(index)) {
+                        throw new RuntimeException(String.format("Duplicate field index: %d", index));
                     }
+                    fieldDefs.put(index, def);
                 }
             }
 
@@ -244,18 +238,14 @@ public final class IsoMessageDef {
          * @return
          */
         private Map<Integer, ComponentDef> buildFixedComponents(Element ce) {
-            NodeList nodes = ce.getChildNodes();
+            List<Element> fields = getSubElements(ce);
             Map<Integer, ComponentDef> fieldDefs = null;
-            if (nodes.getLength() > 0) {
+            if (fields.size() > 0) {
                 fieldDefs = new TreeMap<>();
                 int index = 1;
-                for (int i = 0; i < nodes.getLength(); i++) {
-                    Node n = nodes.item(i);
-                    if (n.getNodeType() == Node.ELEMENT_NODE) {
-                        Element e = (Element) n;
-                        ComponentDef def = buildComponent(e, true);
-                        fieldDefs.put(index++, def);
-                    }
+                for (Element e : fields) {
+                    ComponentDef def = buildComponent(e, true);
+                    fieldDefs.put(index++, def);
                 }
             }
             return fieldDefs;
@@ -328,14 +318,10 @@ public final class IsoMessageDef {
                 if (CustomCodec.class.isAssignableFrom(customClass)) {
                     CustomCodec customCodec = (CustomCodec) customClass.newInstance();
 
-                    NodeList paramNodes = e.getChildNodes();
                     Map<String, String> params = new HashMap<>();
-                    for (int i = 0; i < paramNodes.getLength(); i++) {
-                        Node n = paramNodes.item(i);
-                        if (n.getNodeType() == Node.ELEMENT_NODE) {
-                            Element paramNode = (Element) n;
-                            params.put(paramNode.getAttribute("key"), paramNode.getAttribute("value"));
-                        }
+                    List<Element> paramElements = getSubElements(e);
+                    for (Element paramElement : paramElements) {
+                        params.put(paramElement.getAttribute("key"), paramElement.getAttribute("value"));
                     }
                     if (customCodec instanceof Configurable) {
                         ((Configurable) customCodec).configure(params);
@@ -403,6 +389,18 @@ public final class IsoMessageDef {
             return e.getAttribute(attribute).length() > 0 ? e.getAttribute(attribute) : null;
         }
 
+        private List<Element> getSubElements(Element parent) {
+            List<Element> subElements = new ArrayList<>();
+            NodeList childNodes = parent.getChildNodes();
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                Node childNode = childNodes.item(i);
+                if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+                    subElements.add((Element) childNode);
+                }
+            }
+            return subElements;
+        }
+
         private void buildFieldsCodecsExtension(Map<Integer, ComponentDef> existingCodecs, BitmapCodec bitmapCodec) {
             NodeList messageExtList = doc.getElementsByTagName("message-ext");
             Map<Integer, ComponentDef> extensions = new TreeMap<>();
@@ -418,12 +416,102 @@ public final class IsoMessageDef {
                 CompositeCodec existingCompositeCodec = (CompositeCodec) existing.getCodec();
                 Map<Integer, ComponentDef> clonedFieldsDef = clone(existingCompositeCodec.getSubComponentDefs());
 
+                Element setElement = null;
+                Element removeElement = null;
+                for (Element e : getSubElements(messageDef)) {
+                    switch (e.getTagName()) {
+                    case "set":
+                        setElement = e;
+                        break;
+                    case "remove":
+                        removeElement = e;
+                        break;
+                    default:
+                        throw new RuntimeException(String.format("Unknown message extension instruction %s",
+                                e.getTagName()));
+                    }
+                }
+
+                if (setElement != null) {
+                    setVarFields(clonedFieldsDef, getSubElements(setElement));
+                }
+
+                if (removeElement != null) {
+                    // TODO
+                }
+
                 extensions.put(mti,
                         new ComponentDef(new CompositeCodec(clonedFieldsDef, existingCompositeCodec.getBitmapCodec()),
                                 true));
 
             }
             existingCodecs.putAll(extensions);
+        }
+
+        private void setVarFields(Map<Integer, ComponentDef> components, List<Element> elements) {
+            for (Element e : elements) {
+                Integer index = Integer.valueOf(e.getAttribute("index"));
+
+                ComponentDef newDef = null;
+
+                if ("composite-var".equals(e.getTagName())) {
+                    NumericCodec existingTagCodec = null;
+                    NumericCodec existingLengthCodec = null;
+                    BitmapCodec existingBitmapCodec = null;
+                    Boolean existingMandatory = null;
+                    Map<Integer, ComponentDef> existingSubComponentDefs = null;
+
+                    ComponentDef existingDef = components.get(index);
+                    if (existingDef != null) {
+                        existingMandatory = existingDef.isMandatory();
+                        Codec<?> codec = existingDef.getCodec();
+                        if (codec instanceof TagVarCodec) {
+                            existingTagCodec = ((TagVarCodec<?>) codec).getTagCodec();
+                        }
+                        if (codec instanceof VarCodec) {
+                            existingLengthCodec = ((VarCodec<?>) codec).getLengthCodec();
+                            codec = ((VarCodec<?>) codec).getCodec();
+                        }
+                        if (codec instanceof CompositeCodec) {
+                            existingBitmapCodec = ((CompositeCodec) codec).getBitmapCodec();
+                            existingSubComponentDefs = ((CompositeCodec) codec).getSubComponentDefs();
+                        }
+                    }
+
+                    NumericCodec newTagCodec = null;
+                    Integer tagDigits = getInteger(e, "tag-length");
+                    if (tagDigits != null) {
+                        newTagCodec = new NumericCodec(getEncoding(e, "tag-encoding", defaultTagEncoding), tagDigits);
+                    }
+                    NumericCodec newLengthCodec = buildVarLengthCodec(e);
+
+                    Bitmap.Type bitmapType = getBitmapType(e);
+                    BitmapCodec newBitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
+
+                    Boolean newMandatory = isMandatory(e);
+
+                    if (existingSubComponentDefs != null
+                            && EqualsBuilder.newInstance(existingTagCodec, newTagCodec)
+                                    .append(existingLengthCodec, newLengthCodec)
+                                    .append(existingBitmapCodec, newBitmapCodec)
+                                    .append(existingMandatory, newMandatory).isEqual()) {
+                        setVarFields(existingSubComponentDefs, getSubElements(e));
+                        CompositeCodec compositeCodec = new CompositeCodec(existingSubComponentDefs, newBitmapCodec);
+                        Codec<?> codec = null;
+                        if (newTagCodec != null) {
+                            codec = new TagVarCodec<>(compositeCodec, newLengthCodec, newTagCodec);
+                        } else {
+                            codec = new VarCodec<>(compositeCodec, newLengthCodec);
+                        }
+                        newDef = new ComponentDef(codec, newMandatory);
+                    }
+                }
+
+                if (newDef == null) {
+                    newDef = buildComponent(e, isMandatory(e));
+                }
+                components.put(index, newDef);
+            }
         }
 
         private Map<Integer, ComponentDef> clone(Map<Integer, ComponentDef> existingDefs) {

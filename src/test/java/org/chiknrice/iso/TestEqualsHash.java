@@ -23,11 +23,11 @@ public class TestEqualsHash extends BaseTest {
     @Test
     public void testHash() {
         TagVarCodec<String> left = new TagVarCodec<>(new AlphaCodec(StandardCharsets.ISO_8859_1, true),
-                new NumericCodec(Encoding.BCD));
+                new NumericCodec(Encoding.BCD), new NumericCodec(Encoding.BCD));
         TagVarCodec<String> right = new TagVarCodec<>(new AlphaCodec(StandardCharsets.ISO_8859_1, true),
-                new NumericCodec(Encoding.BCD));
+                new NumericCodec(Encoding.BCD), new NumericCodec(Encoding.BCD));
         TagVarCodec<String> wrong = new TagVarCodec<>(new AlphaCodec(StandardCharsets.ISO_8859_1, false),
-                new NumericCodec(Encoding.BCD));
+                new NumericCodec(Encoding.BCD), new NumericCodec(Encoding.BCD));
         assertEquals(left.hashCode(), right.hashCode());
         assertNotEquals(left.hashCode(), wrong.hashCode());
     }
@@ -35,11 +35,11 @@ public class TestEqualsHash extends BaseTest {
     @Test
     public void testEquals() {
         TagVarCodec<String> left = new TagVarCodec<>(new AlphaCodec(StandardCharsets.ISO_8859_1, true),
-                new NumericCodec(Encoding.BCD));
+                new NumericCodec(Encoding.BCD), new NumericCodec(Encoding.BCD));
         TagVarCodec<String> right = new TagVarCodec<>(new AlphaCodec(StandardCharsets.ISO_8859_1, true),
-                new NumericCodec(Encoding.BCD));
+                new NumericCodec(Encoding.BCD), new NumericCodec(Encoding.BCD));
         TagVarCodec<String> wrong = new TagVarCodec<>(new AlphaCodec(StandardCharsets.ISO_8859_1, false),
-                new NumericCodec(Encoding.BCD));
+                new NumericCodec(Encoding.BCD), new NumericCodec(Encoding.BCD));
         assertEquals(left, right);
         assertNotEquals(left, wrong);
     }
