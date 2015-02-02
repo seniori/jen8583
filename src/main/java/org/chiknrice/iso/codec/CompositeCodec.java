@@ -42,6 +42,9 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
     public CompositeCodec(Map<Integer, ComponentDef> subComponentDefs, BitmapCodec bitmapCodec) {
         this.subComponentDefs = subComponentDefs;
         this.bitmapCodec = bitmapCodec;
+        if (bitmapCodec != null && subComponentDefs.get(1) != null) {
+            throw new RuntimeException("Composite components with bitmap cannot have subfield index 1");
+        }
     }
 
     public Map<Integer, Object> decode(ByteBuffer buf) {

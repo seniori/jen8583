@@ -19,16 +19,25 @@
         <alpha index="3" length="1" />
         <alpha index="4" length="1" />
         <composite index="5">
-            <alpha length="2" />
             <numeric length="2" />
+            <alpha length="2" />
         </composite>
         <composite-var index="6" length="2" bitmap-type="BINARY">
-            <alpha index="1" length="2" />
             <alpha index="2" length="2" />
+            <alpha index="3" length="2" />
+            <composite index="4">
+                <alpha length="2" />
+                <alpha length="10" />
+            </composite>
+            <composite-var index="5" length="2">
+                <alpha index="1" length="5" />
+                <numeric index="5" length="7" />
+            </composite-var>
+            <numeric index="9" length="20"/>
         </composite-var>
     </message>
 
-    <message-ext extends="100" mti="110">
+    <message-ext mti="110" extends="100">
 
         <set>
 
@@ -37,19 +46,19 @@
                 <alpha index="3" length="3" />
             </composite-var>
             <composite-var index="6" length="2" bitmap-type="BINARY">
-                <numeric index="1" length="2" />
+                <numeric index="2" length="2" />
             </composite-var>
         </set>
 
-        <!-- <remove>
+        <remove>
             <field index="4" />
             <composite index="6">
-                <field index="1" />
+                <field index="9" />
             </composite>
-        </remove> -->
+        </remove>
     </message-ext>
 
-    <message-ext extends="100" mti="200"></message-ext>
+    <message-ext mti="200" extends="100"></message-ext>
 
 </iso>
     

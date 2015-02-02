@@ -45,6 +45,9 @@ public final class AlphaCodec implements Codec<String> {
     public AlphaCodec(Charset charset, Boolean trim, Boolean leftJustified, Integer fixedLength) {
         this.charset = charset;
         this.trim = trim;
+        if (fixedLength != null && leftJustified == null) {
+            throw new RuntimeException("Fixed length config requires justified flag");
+        }
         this.leftJustified = leftJustified;
         this.fixedLength = fixedLength;
     }

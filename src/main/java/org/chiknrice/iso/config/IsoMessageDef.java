@@ -437,7 +437,7 @@ public final class IsoMessageDef {
                 }
 
                 if (removeElement != null) {
-                    // TODO
+                    removeFields(clonedFieldsDef, getSubElements(removeElement));
                 }
 
                 extensions.put(mti,
@@ -446,6 +446,32 @@ public final class IsoMessageDef {
 
             }
             existingCodecs.putAll(extensions);
+        }
+
+        private void removeFields(Map<Integer, ComponentDef> componentDefs, List<Element> subElements) {
+            for (Element e : subElements) {
+                Integer index = Integer.valueOf(e.getAttribute("index"));
+                switch (e.getTagName()) {
+                case "field":
+                    if (componentDefs.remove(index) == null) {
+                        throw new RuntimeException(String.format("Expected field %d not found", index));
+                    }
+                    break;
+                case "composite":
+                    Codec<?> codec = componentDefs.get(index).getCodec();
+                    if (codec instanceof VarCodec) {
+                        codec = ((VarCodec<?>) codec).getCodec();
+                    }
+                    if (codec instanceof CompositeCodec) {
+                        removeFields(((CompositeCodec) codec).getSubComponentDefs(), getSubElements(e));
+                        break;
+                    }
+                    throw new RuntimeException(String.format("Expected composite field %d not found", index));
+                default:
+                    throw new RuntimeException(String.format("Unknown message remove component instruction %s",
+                            e.getTagName()));
+                }
+            }
         }
 
         private void setVarFields(Map<Integer, ComponentDef> components, List<Element> elements) {

@@ -80,6 +80,7 @@ public class IsoMessageCodec {
      */
     @SuppressWarnings("unchecked")
     public byte[] encode(IsoMessage msg) {
+        // TODO: use buffer pool
         ByteBuffer buf = ByteBuffer.allocate(0x7FFF);
         if (config.getHeaderDef() != null) {
             config.getHeaderDef().getCodec().encode(buf, msg.getHeader());

@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.codec.CompositeCodec;
 import org.chiknrice.iso.codec.NumericCodec;
 import org.chiknrice.iso.codec.VarCodec;
@@ -44,17 +43,34 @@ public class TestMessageExtension extends BaseTest {
 
         assertNotEquals(def100, def110);
         assertEquals(def100, def200);
-        //assertEquals(def100.getCodec(), def110.getCodec());
-//        assertEquals(((CompositeCodec) def100.getCodec()).getSubComponentDefs().get(5),
-//                ((CompositeCodec) def110.getCodec()).getSubComponentDefs().get(5));
-        Codec<?> codec = def110.getCodec();
-        assertTrue(codec instanceof CompositeCodec);
-        Map<Integer, ComponentDef> subComponents = ((CompositeCodec)codec).getSubComponentDefs();
-        codec = subComponents.get(6).getCodec();
-        codec = ((VarCodec<?>)codec).getCodec();
-        subComponents = ((CompositeCodec)codec).getSubComponentDefs();
-        assertEquals(2, subComponents.size());
-        assertTrue(subComponents.get(1).getCodec() instanceof NumericCodec);
+
+        Map<Integer, ComponentDef> def100Components = ((CompositeCodec) def100.getCodec()).getSubComponentDefs();
+        Map<Integer, ComponentDef> def110Components = ((CompositeCodec) def110.getCodec()).getSubComponentDefs();
+
+        assertTrue(def100Components.get(5).getCodec() instanceof CompositeCodec);
+        assertTrue(def110Components.get(5).getCodec() instanceof VarCodec);
+
+        CompositeCodec codec100_5 = (CompositeCodec) def100Components.get(5).getCodec();
+        CompositeCodec codec110_5 = (CompositeCodec) ((VarCodec<?>) def110Components.get(5).getCodec()).getCodec();
+
+        assertNotEquals(codec100_5, codec110_5);
+        assertEquals(null, codec100_5.getSubComponentDefs().get(3));
+        assertEquals(null, codec110_5.getSubComponentDefs().get(1));
+        assertEquals(codec100_5.getSubComponentDefs().get(2), codec110_5.getSubComponentDefs().get(2));
+
+        CompositeCodec codec100_6 = (CompositeCodec) ((VarCodec<?>) def100Components.get(6).getCodec()).getCodec();
+        CompositeCodec codec110_6 = (CompositeCodec) ((VarCodec<?>) def110Components.get(6).getCodec()).getCodec();
+
+        assertEquals(5, codec100_6.getSubComponentDefs().size());
+        assertEquals(4, codec110_6.getSubComponentDefs().size());
+        assertTrue(codec100_6.getSubComponentDefs().get(3) != null);
+        assertTrue(codec110_6.getSubComponentDefs().get(3) != null);
+        assertNotEquals(codec100_6.getSubComponentDefs().get(2), codec110_6.getSubComponentDefs().get(2));
+        assertEquals(codec100_6.getSubComponentDefs().get(3), codec110_6.getSubComponentDefs().get(3));
+        assertTrue(codec110_6.getSubComponentDefs().get(2).getCodec() instanceof NumericCodec);
+
+        assertTrue(def100Components.get(4) != null);
+        assertTrue(def110Components.get(4) == null);
     }
 
     @Test
