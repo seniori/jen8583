@@ -176,9 +176,9 @@ public final class IsoMessageDef {
                     .getAttribute("type"));
             LOG.info("Bitmap type: {}", msgBitmapType);
             BitmapCodec bitmapCodec = new BitmapCodec(msgBitmapType);
-            Map<Integer, ComponentDef> fieldsDef = buildFieldsCodecs(bitmapCodec);
+            Map<Integer, ComponentDef> fieldsDef = buildFieldsDefs(bitmapCodec);
 
-            buildFieldsCodecsExtension(fieldsDef, bitmapCodec);
+            buildFieldsDefsExtension(fieldsDef, bitmapCodec);
 
             return new IsoMessageDef(headerDef, mtiCodec, fieldsDef);
         }
@@ -196,7 +196,7 @@ public final class IsoMessageDef {
          * @param bitmapCodec
          * @return
          */
-        private Map<Integer, ComponentDef> buildFieldsCodecs(BitmapCodec bitmapCodec) {
+        private Map<Integer, ComponentDef> buildFieldsDefs(BitmapCodec bitmapCodec) {
             NodeList messageList = doc.getElementsByTagName("message");
             Map<Integer, ComponentDef> defs = new TreeMap<>();
 
@@ -401,7 +401,7 @@ public final class IsoMessageDef {
             return subElements;
         }
 
-        private void buildFieldsCodecsExtension(Map<Integer, ComponentDef> existingCodecs, BitmapCodec bitmapCodec) {
+        private void buildFieldsDefsExtension(Map<Integer, ComponentDef> existingCodecs, BitmapCodec bitmapCodec) {
             NodeList messageExtList = doc.getElementsByTagName("message-ext");
             Map<Integer, ComponentDef> extensions = new TreeMap<>();
             for (int i = 0; i < messageExtList.getLength(); i++) {
@@ -413,6 +413,9 @@ public final class IsoMessageDef {
                 }
 
                 ComponentDef existing = existingCodecs.get(mtiExisting);
+                if (existing == null) {
+                    throw new RuntimeException(String.format("Error extending mti %d, no config available", mti));
+                }
                 CompositeCodec existingCompositeCodec = (CompositeCodec) existing.getCodec();
                 Map<Integer, ComponentDef> clonedFieldsDef = clone(existingCompositeCodec.getSubComponentDefs());
 

@@ -80,5 +80,5 @@ public class TestMessageExtension extends BaseTest {
         assertEquals("6.2", ((CompositeCodec) ((VarCodec<?>) ((CompositeCodec) codec100.getCodec())
                 .getSubComponentDefs().get(6).getCodec()).getCodec()).getSubComponentDefs().get(2).toString());
     }
-
+    
 }
