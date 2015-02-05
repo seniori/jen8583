@@ -24,9 +24,9 @@ import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
 /**
- * A codec implementation for alphanumeric fields. It accepts a character which would be used to encode/decode the
- * string to and from byte[]. The character set used is either the one used for the specific field or the one set as the
- * default (both in the xml configuration).
+ * A codec implementation for alphanumeric fields. The only supported character set is ISO 8859-1 (single byte character
+ * set) to encode/decode the string to and from byte[]. The codec can be configured to be fixed length where option for
+ * left justified when padding is available. Trim option is also available after decoding.
  * 
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
@@ -38,12 +38,12 @@ public final class AlphaCodec implements Codec<String> {
     private final Boolean leftJustified;
     private final Integer fixedLength;
 
-    public AlphaCodec(Charset charset, Boolean trim) {
-        this(charset, trim, null, null);
+    public AlphaCodec(Boolean trim) {
+        this(trim, null, null);
     }
 
-    public AlphaCodec(Charset charset, Boolean trim, Boolean leftJustified, Integer fixedLength) {
-        this.charset = charset;
+    public AlphaCodec(Boolean trim, Boolean leftJustified, Integer fixedLength) {
+        this.charset = StandardCharsets.ISO_8859_1;
         this.trim = trim;
         if (fixedLength != null && leftJustified == null) {
             throw new RuntimeException("Fixed length config requires justified flag");

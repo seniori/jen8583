@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.chiknrice.org/jen8583" xmlns:tns="http://www.chiknrice.org/jen8583"
-    elementFormDefault="qualified" version="0.0.1">
+    elementFormDefault="qualified" version="0.0.4">
 
     <!--
 
@@ -35,7 +35,6 @@
                             </element>
                             <element name="alpha">
                                 <complexType>
-                                    <attribute name="charset" type="token" use="required" />
                                     <attribute name="justified" type="tns:justified-type" use="required" />
                                     <attribute name="trim" type="boolean" use="required" />
                                 </complexType>
@@ -161,7 +160,6 @@
 
     <complexType name="alpha" abstract="true">
         <attribute name="length" type="int" use="required" />
-        <attribute name="charset" type="token" use="optional" default="UTF-8" />
         <attribute name="trim" type="boolean" use="optional" default="true" />
     </complexType>
 

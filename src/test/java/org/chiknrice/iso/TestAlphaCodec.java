@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import org.chiknrice.iso.codec.AlphaCodec;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -32,7 +31,7 @@ public class TestAlphaCodec extends BaseTest {
 
     @Test
     public void testSimpleEncode() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.ISO_8859_1, false);
+        AlphaCodec codec = new AlphaCodec(false);
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, "abc");
         byte[] bytes = buf.array();
@@ -42,52 +41,52 @@ public class TestAlphaCodec extends BaseTest {
 
     @Test
     public void testEncodeSpecialChar() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, false);
+        AlphaCodec codec = new AlphaCodec(false);
         ByteBuffer buf = ByteBuffer.allocate(20);
-        codec.encode(buf, "Φ");
+        codec.encode(buf, "ü");
         byte[] bytes = buf.array();
-        String encoded = new String(bytes, 0, 2, StandardCharsets.UTF_8);
-        assertEquals("Φ", encoded);
+        String encoded = new String(bytes, 0, 1, StandardCharsets.ISO_8859_1);
+        assertEquals("ü", encoded);
     }
 
     @Test
     public void testEncodeSpecialCharPadded() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, false, true, 3);
+        AlphaCodec codec = new AlphaCodec(false, true, 3);
         ByteBuffer buf = ByteBuffer.allocate(20);
-        codec.encode(buf, "Φ");
+        codec.encode(buf, "ü");
         byte[] bytes = buf.array();
-        String encoded = new String(bytes, 0, 4, StandardCharsets.UTF_8);
-        assertEquals("Φ  ", encoded);
+        String encoded = new String(bytes, 0, 3, StandardCharsets.ISO_8859_1);
+        assertEquals("ü  ", encoded);
     }
 
     @Test(expected = RuntimeException.class)
     public void testInsufficientConstructorArgs() {
-        new AlphaCodec(StandardCharsets.UTF_8, true, null, 9);
+        new AlphaCodec(true, null, 9);
     }
 
     @Test
     public void testPadding() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, true, false, 9);
+        AlphaCodec codec = new AlphaCodec(true, false, 9);
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, "abc");
         byte[] bytes = buf.array();
-        String encoded = new String(bytes, 0, 9, StandardCharsets.UTF_8);
+        String encoded = new String(bytes, 0, 9, StandardCharsets.ISO_8859_1);
         assertEquals("      abc", encoded);
     }
 
     @Test
     public void testJustified() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, true, true, 9);
+        AlphaCodec codec = new AlphaCodec(true, true, 9);
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, "abc");
         byte[] bytes = buf.array();
-        String encoded = new String(bytes, 0, 9, StandardCharsets.UTF_8);
+        String encoded = new String(bytes, 0, 9, StandardCharsets.ISO_8859_1);
         assertEquals("abc      ", encoded);
     }
 
     @Test
     public void testDecode() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.ISO_8859_1, false);
+        AlphaCodec codec = new AlphaCodec(false);
         byte[] bytes = new byte[] { 0x31, 0x32, 0x33 };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals("123", decoded);
@@ -95,37 +94,34 @@ public class TestAlphaCodec extends BaseTest {
 
     @Test
     public void testDecodeSpecialChar() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, false);
-        byte[] bytes = new byte[] { (byte) 0xce, (byte) 0xa6 };
+        AlphaCodec codec = new AlphaCodec(false);
+        byte[] bytes = new byte[] { (byte) 0xfc };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals("Φ", decoded);
+        assertEquals("ü", decoded);
     }
 
     @Test
     public void testDecodeSpecialCharNoTrim() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, false);
-        byte[] bytes = new byte[] { 0x20, (byte) 0xce, (byte) 0xa6, 0x20, 0x20, 0x20 };
+        AlphaCodec codec = new AlphaCodec(false);
+        byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(" Φ   ", decoded);
+        assertEquals(" ü   ", decoded);
     }
 
     @Test
     public void testDecodeSpecialCharTrim() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, true);
-        byte[] bytes = new byte[] { 0x20, (byte) 0xce, (byte) 0xa6, 0x20, 0x20, 0x20 };
+        AlphaCodec codec = new AlphaCodec(true);
+        byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals("Φ", decoded);
+        assertEquals("ü", decoded);
     }
 
     @Test
-    @Ignore
-    // TODO: this cannot really be decoded properly as the fixed length is pertaining to number of bytes and not number
-    // of characters
     public void testDecodeSpecialCharFixedLength() {
-        AlphaCodec codec = new AlphaCodec(StandardCharsets.UTF_8, false, false, 3);
-        byte[] bytes = new byte[] { 0x20, (byte) 0xce, (byte) 0xa6, 0x20, 0x20, 0x20 };
+        AlphaCodec codec = new AlphaCodec(false, false, 3);
+        byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(" Φ ", decoded);
+        assertEquals(" ü ", decoded);
     }
 
 }

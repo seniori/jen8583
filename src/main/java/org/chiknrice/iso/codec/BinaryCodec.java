@@ -46,6 +46,13 @@ public final class BinaryCodec implements Codec<byte[]> {
     }
 
     public void encode(ByteBuffer buf, byte[] bytes) {
+        if(fixedLength != null) {
+            if(fixedLength > bytes.length) {
+                buf.position(buf.position() + (fixedLength - bytes.length));
+            } else if(fixedLength < bytes.length) {
+                throw new RuntimeException(String.format("Bytes exceed fixed length %d", fixedLength));
+            }
+        }
         buf.put(bytes);
     }
 

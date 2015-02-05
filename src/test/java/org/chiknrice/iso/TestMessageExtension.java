@@ -35,7 +35,7 @@ import org.junit.Test;
 public class TestMessageExtension extends BaseTest {
 
     @Test
-    public void testClone() {
+    public void testExtension() {
         IsoMessageDef def = IsoMessageDef.build("test.xml");
         ComponentDef def100 = def.getFieldsDef().get(100);
         ComponentDef def110 = def.getFieldsDef().get(110);

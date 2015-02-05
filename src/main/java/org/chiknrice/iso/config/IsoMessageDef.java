@@ -15,7 +15,6 @@
  */
 package org.chiknrice.iso.config;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +91,6 @@ public final class IsoMessageDef {
 
         private Encoding defaultTagEncoding;
         private Encoding defaultLengthEncoding;
-        private Charset defaultCharset;
         private boolean defaultTrim;
         private boolean defaultLeftJustified;
         private Encoding defaultNumericEncoding;
@@ -131,10 +129,6 @@ public final class IsoMessageDef {
                     LOG.info("Default length encoding: {}", defaultLengthEncoding);
                     break;
                 case "alpha":
-                    String charsetName = e.getAttribute("charset");
-                    defaultCharset = "SYSTEM".equals(charsetName) ? Charset.defaultCharset() : Charset
-                            .forName(charsetName);
-                    LOG.info("Default charset: {}", defaultCharset);
                     defaultTrim = Boolean.valueOf(e.getAttribute("trim"));
                     LOG.info("Default trim: {}", defaultTrim);
                     defaultLeftJustified = "LEFT".equals(e.getAttribute("justified"));
@@ -222,7 +216,7 @@ public final class IsoMessageDef {
                 fieldDefs = new TreeMap<>();
                 for (Element e : fields) {
                     Integer index = Integer.valueOf(e.getAttribute("index"));
-                    ComponentDef def = buildComponent(e, isMandatory(e));
+                    ComponentDef def = buildComponent(e, getMandatory(e));
                     if (fieldDefs.containsKey(index)) {
                         throw new RuntimeException(String.format("Duplicate field index: %d", index));
                     }
@@ -276,11 +270,10 @@ public final class IsoMessageDef {
                 codec = new CompositeCodec(buildFixedComponents(e));
                 break;
             case "alpha":
-                codec = new AlphaCodec(getCharset(e), isTrim(e), isLeftJustified(e), Integer.valueOf(e
-                        .getAttribute("length")));
+                codec = new AlphaCodec(getTrim(e), getLeftJustified(e), Integer.valueOf(e.getAttribute("length")));
                 break;
             case "alpha-var":
-                codec = new VarCodec<>(new AlphaCodec(getCharset(e), isTrim(e)), buildVarLengthCodec(e));
+                codec = new VarCodec<>(new AlphaCodec(getTrim(e)), buildVarLengthCodec(e));
                 break;
             case "numeric":
                 codec = new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding), Integer.valueOf(e
@@ -345,17 +338,12 @@ public final class IsoMessageDef {
             return new NumericCodec(getEncoding(e, "length-encoding", defaultLengthEncoding), getInteger(e, "length"));
         }
 
-        private Charset getCharset(Element e) {
-            String value = getOptionalAttribute(e, "charset");
-            return value != null ? Charset.forName(value) : defaultCharset;
-        }
-
-        private Boolean isTrim(Element e) {
+        private Boolean getTrim(Element e) {
             String value = getOptionalAttribute(e, "trim");
             return value != null ? "LEFT".equals(value) : defaultTrim;
         }
 
-        private Boolean isLeftJustified(Element e) {
+        private Boolean getLeftJustified(Element e) {
             String value = getOptionalAttribute(e, "justified");
             return value != null ? "LEFT".equals(value) : defaultLeftJustified;
         }
@@ -380,7 +368,7 @@ public final class IsoMessageDef {
             return value != null ? Bitmap.Type.valueOf(value) : null;
         }
 
-        private boolean isMandatory(Element e) {
+        private boolean getMandatory(Element e) {
             String value = getOptionalAttribute(e, "mandatory");
             return value != null ? Boolean.parseBoolean(value) : defaultMandatory;
         }
@@ -517,7 +505,7 @@ public final class IsoMessageDef {
                     Bitmap.Type bitmapType = getBitmapType(e);
                     BitmapCodec newBitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
 
-                    Boolean newMandatory = isMandatory(e);
+                    Boolean newMandatory = getMandatory(e);
 
                     if (existingSubComponentDefs != null
                             && EqualsBuilder.newInstance(existingTagCodec, newTagCodec)
@@ -537,7 +525,7 @@ public final class IsoMessageDef {
                 }
 
                 if (newDef == null) {
-                    newDef = buildComponent(e, isMandatory(e));
+                    newDef = buildComponent(e, getMandatory(e));
                 }
                 components.put(index, newDef);
             }
