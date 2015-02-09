@@ -16,6 +16,7 @@
 package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
@@ -27,11 +28,11 @@ import org.junit.Test;
  *
  */
 public class TestBinaryCodec extends BaseTest {
-    
+
     @Test
     public void testEncode() {
         BinaryCodec codec = new BinaryCodec();
-        byte[] bytes = new byte[] {0x11, 0x22, 0x33, 0x44, 0x55};
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
         ByteBuffer buf = ByteBuffer.allocate(10);
         codec.encode(buf, bytes);
         byte[] encoded = buf.array();
@@ -42,11 +43,11 @@ public class TestBinaryCodec extends BaseTest {
             assertEquals(0x00, encoded[i]);
         }
     }
-    
+
     @Test
     public void testEncodeFixedLength() {
         BinaryCodec codec = new BinaryCodec(7);
-        byte[] bytes = new byte[] {0x11, 0x22, 0x33, 0x44, 0x55};
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
         ByteBuffer buf = ByteBuffer.allocate(10);
         codec.encode(buf, bytes);
         byte[] encoded = buf.array();
@@ -56,6 +57,40 @@ public class TestBinaryCodec extends BaseTest {
         for (int i = buf.position(); i < encoded.length; i++) {
             assertEquals(0x00, encoded[i]);
         }
+    }
+
+    @Test
+    public void testDecode() {
+        BinaryCodec codec = new BinaryCodec();
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55, 0x00, 0x00 };
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
+        byte[] decoded = codec.decode(buf);
+        assertTrue(bytes != decoded);
+        assertEquals(bytes.length, decoded.length);
+        for (int i = 0; i < decoded.length; i++) {
+            assertEquals(decoded[i], bytes[i]);
+        }
+    }
+
+    @Test
+    public void testDecodeFixed() {
+        BinaryCodec codec = new BinaryCodec(4);
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55, 0x00, 0x00 };
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
+        byte[] decoded = codec.decode(buf);
+        assertTrue(bytes != decoded);
+        assertEquals(4, decoded.length);
+        for (int i = 0; i < decoded.length; i++) {
+            assertEquals(decoded[i], bytes[i]);
+        }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testEncodeExceedingFixedLength() {
+        BinaryCodec codec = new BinaryCodec(3);
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
+        ByteBuffer buf = ByteBuffer.allocate(10);
+        codec.encode(buf, bytes);
     }
 
 }
