@@ -59,7 +59,7 @@ public class TestAlphaCodec extends BaseTest {
         assertEquals("ü  ", encoded);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testInsufficientConstructorArgs() {
         new AlphaCodec(true, null, 9);
     }
@@ -72,6 +72,13 @@ public class TestAlphaCodec extends BaseTest {
         byte[] bytes = buf.array();
         String encoded = new String(bytes, 0, 9, StandardCharsets.ISO_8859_1);
         assertEquals("      abc", encoded);
+    }
+
+    @Test(expected = CodecException.class)
+    public void testExceedFixedLength() {
+        AlphaCodec codec = new AlphaCodec(true, false, 4);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        codec.encode(buf, "abcdef");
     }
 
     @Test
