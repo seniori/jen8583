@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.config.IsoMessageDef;
 
 /**
@@ -64,11 +65,18 @@ public class IsoMessageCodec {
         if (header != null) {
             m.setHeader(new ArrayList<>(header.values()));
         }
-        Map<Integer, Object> fields = (Map<Integer, Object>) config.getFieldsDef().get(mti).getCodec().decode(buf);
-        for (Entry<Integer, Object> field : fields.entrySet()) {
-            m.setField(field.getKey(), field.getValue());
+
+        ComponentDef fieldsDef = config.getFieldsDef().get(mti);
+
+        if (fieldsDef != null) {
+            Map<Integer, Object> fields = (Map<Integer, Object>) fieldsDef.getCodec().decode(buf);
+            for (Entry<Integer, Object> field : fields.entrySet()) {
+                m.setField(field.getKey(), field.getValue());
+            }
+            return m;
+        } else {
+            throw new CodecException(String.format("Missing fields definition for mti %d", mti));
         }
-        return m;
     }
 
     /**
@@ -86,10 +94,17 @@ public class IsoMessageCodec {
             config.getHeaderDef().getCodec().encode(buf, msg.getHeader());
         }
         config.getMtiCodec().encode(buf, msg.getMti().longValue());
-        config.getFieldsDef().get(msg.getMti()).getCodec().encode(buf, msg.getFields());
-        byte[] encoded = new byte[buf.position()];
-        System.arraycopy(buf.array(), 0, encoded, 0, encoded.length);
-        return encoded;
+
+        ComponentDef fieldsDef = config.getFieldsDef().get(msg.getMti());
+
+        if (fieldsDef != null) {
+            fieldsDef.getCodec().encode(buf, msg.getFields());
+            byte[] encoded = new byte[buf.position()];
+            System.arraycopy(buf.array(), 0, encoded, 0, encoded.length);
+            return encoded;
+        } else {
+            throw new CodecException(String.format("Missing fields definition for mti %d", msg.getMti()));
+        }
     }
 
 }
