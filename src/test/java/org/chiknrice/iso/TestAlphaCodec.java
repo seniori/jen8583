@@ -16,11 +16,14 @@
 package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import org.chiknrice.iso.codec.AlphaCodec;
+import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.junit.Test;
 
 /**
@@ -129,6 +132,28 @@ public class TestAlphaCodec extends BaseTest {
         byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals(" ü ", decoded);
+    }
+
+    @Test
+    public void testGetEncoding() {
+        AlphaCodec codec = new AlphaCodec(false);
+        assertEquals(Encoding.CHAR, codec.getEncoding());
+    }
+
+    @Test
+    public void testEqualsAndHashCode() {
+        AlphaCodec codec1 = new AlphaCodec(true, false, 5);
+        AlphaCodec codec2 = new AlphaCodec(true, false, 5);
+        AlphaCodec codec3 = new AlphaCodec(true, true, 5);
+        assertTrue(!codec1.equals(null));
+        assertTrue(!codec1.equals("a"));
+        assertTrue(codec1.equals(codec1));
+        assertTrue(codec1.equals(codec2));
+        assertEquals(codec1.hashCode(), codec2.hashCode());
+        assertTrue(!codec1.equals(codec3));
+        assertNotEquals(codec1.hashCode(), codec3.hashCode());
+        assertTrue(!codec2.equals(codec3));
+        assertNotEquals(codec2.hashCode(), codec3.hashCode());
     }
 
 }

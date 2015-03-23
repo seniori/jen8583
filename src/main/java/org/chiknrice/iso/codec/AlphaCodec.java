@@ -16,7 +16,6 @@
 package org.chiknrice.iso.codec;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import org.chiknrice.iso.CodecException;
@@ -35,7 +34,6 @@ import org.chiknrice.iso.util.Hash;
  */
 public final class AlphaCodec implements Codec<String> {
 
-    private final Charset charset;
     private final Boolean trim;
     private final Boolean leftJustified;
     private final Integer fixedLength;
@@ -45,7 +43,6 @@ public final class AlphaCodec implements Codec<String> {
     }
 
     public AlphaCodec(Boolean trim, Boolean leftJustified, Integer fixedLength) {
-        this.charset = StandardCharsets.ISO_8859_1;
         this.trim = trim;
         if (fixedLength != null && leftJustified == null) {
             throw new ConfigException("Fixed length config requires justified flag");
@@ -57,7 +54,7 @@ public final class AlphaCodec implements Codec<String> {
     public String decode(ByteBuffer buf) {
         byte[] bytes = new byte[fixedLength != null ? fixedLength : buf.limit() - buf.position()];
         buf.get(bytes);
-        String value = new String(bytes, charset != null ? charset : StandardCharsets.ISO_8859_1);
+        String value = new String(bytes, StandardCharsets.ISO_8859_1);
         return trim ? value.trim() : value;
     }
 
@@ -71,7 +68,7 @@ public final class AlphaCodec implements Codec<String> {
                 stringValue = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", stringValue);
             }
         }
-        buf.put(stringValue.getBytes(charset != null ? charset : StandardCharsets.ISO_8859_1));
+        buf.put(stringValue.getBytes(StandardCharsets.ISO_8859_1));
     }
 
     @Override
@@ -81,7 +78,7 @@ public final class AlphaCodec implements Codec<String> {
 
     @Override
     public int hashCode() {
-        return Hash.build(this, charset, trim, leftJustified, fixedLength);
+        return Hash.build(this, trim, leftJustified, fixedLength);
     }
 
     @Override
@@ -94,8 +91,8 @@ public final class AlphaCodec implements Codec<String> {
             return false;
         } else {
             AlphaCodec other = (AlphaCodec) o;
-            return EqualsBuilder.newInstance(other.charset, charset).append(other.trim, trim)
-                    .append(other.leftJustified, leftJustified).append(other.fixedLength, fixedLength).isEqual();
+            return EqualsBuilder.newInstance(other.trim, trim).append(other.leftJustified, leftJustified)
+                    .append(other.fixedLength, fixedLength).isEqual();
         }
     }
 

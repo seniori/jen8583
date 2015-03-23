@@ -16,11 +16,13 @@
 package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 
 import org.chiknrice.iso.codec.BinaryCodec;
+import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.junit.Test;
 
 /**
@@ -45,7 +47,7 @@ public class TestBinaryCodec extends BaseTest {
     }
 
     @Test
-    public void testEncodeFixedLength() {
+    public void testEncodeLessThanFixedLength() {
         BinaryCodec codec = new BinaryCodec(7);
         byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
         ByteBuffer buf = ByteBuffer.allocate(10);
@@ -57,6 +59,29 @@ public class TestBinaryCodec extends BaseTest {
         for (int i = buf.position(); i < encoded.length; i++) {
             assertEquals(0x00, encoded[i]);
         }
+    }
+
+    @Test
+    public void testEncodeExactFixedLength() {
+        BinaryCodec codec = new BinaryCodec(5);
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
+        ByteBuffer buf = ByteBuffer.allocate(10);
+        codec.encode(buf, bytes);
+        byte[] encoded = buf.array();
+        for (int i = 0; i < bytes.length; i++) {
+            assertEquals(bytes[i], encoded[i]);
+        }
+        for (int i = buf.position(); i < encoded.length; i++) {
+            assertEquals(0x00, encoded[i]);
+        }
+    }
+
+    @Test(expected = CodecException.class)
+    public void testEncodeExceedingFixedLength() {
+        BinaryCodec codec = new BinaryCodec(3);
+        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
+        ByteBuffer buf = ByteBuffer.allocate(10);
+        codec.encode(buf, bytes);
     }
 
     @Test
@@ -85,12 +110,26 @@ public class TestBinaryCodec extends BaseTest {
         }
     }
 
-    @Test(expected = CodecException.class)
-    public void testEncodeExceedingFixedLength() {
-        BinaryCodec codec = new BinaryCodec(3);
-        byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };
-        ByteBuffer buf = ByteBuffer.allocate(10);
-        codec.encode(buf, bytes);
+    @Test
+    public void testGetEncoding() {
+        BinaryCodec codec = new BinaryCodec(4);
+        assertEquals(Encoding.BINARY, codec.getEncoding());
+    }
+
+    @Test
+    public void testEqualsAndHashCode() {
+        BinaryCodec codec1 = new BinaryCodec(4);
+        BinaryCodec codec2 = new BinaryCodec(4);
+        BinaryCodec codec3 = new BinaryCodec(3);
+        assertTrue(!codec1.equals(null));
+        assertTrue(!codec1.equals("a"));
+        assertTrue(codec1.equals(codec1));
+        assertTrue(codec1.equals(codec2));
+        assertEquals(codec1.hashCode(), codec2.hashCode());
+        assertTrue(!codec1.equals(codec3));
+        assertNotEquals(codec1.hashCode(), codec3.hashCode());
+        assertTrue(!codec2.equals(codec3));
+        assertNotEquals(codec2.hashCode(), codec3.hashCode());
     }
 
 }
