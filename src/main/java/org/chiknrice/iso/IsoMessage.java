@@ -175,7 +175,11 @@ public class IsoMessage {
      *            the value.
      */
     public void setField(Integer index, Object value) {
-        fields.put(index, value);
+        if (value == null) {
+            fields.remove(index);
+        } else {
+            fields.put(index, value);
+        }
     }
 
     /**
@@ -187,10 +191,6 @@ public class IsoMessage {
      *            the value.
      */
     public void setField(String recursiveExpression, Object value) {
-        // TODO: remove value if null is passed
-        if (value == null) {
-            return;
-        }
         Pattern p = Pattern.compile("\\d+(\\.\\d+)+");
         Matcher m = p.matcher(recursiveExpression);
         if (!m.matches()) {
@@ -203,7 +203,12 @@ public class IsoMessage {
 
             for (int i = 0; i < indexes.length; i++) {
                 if (i == (indexes.length - 1)) {
-                    components.put(Integer.valueOf(indexes[i]), value);
+                    Integer key = Integer.valueOf(indexes[i]);
+                    if (value == null) {
+                        components.remove(key);
+                    } else {
+                        components.put(key, value);
+                    }
                 } else {
                     Integer key = Integer.valueOf(indexes[i]);
                     Object currentValue = components.get(key);
@@ -280,10 +285,7 @@ public class IsoMessage {
 
     public void copyFields(IsoMessage other, Integer... indexes) {
         for (Integer index : indexes) {
-            Object value = other.getField(index);
-            if (value != null) {
-                setField(index, value);
-            }
+            setField(index, other.getField(index));
         }
     }
 
