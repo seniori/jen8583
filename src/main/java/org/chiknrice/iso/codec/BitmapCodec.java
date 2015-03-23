@@ -40,7 +40,7 @@ public class BitmapCodec {
 
     /**
      * @param buf
-     * @return
+     * @return the decoded bitmap
      */
     public Bitmap decode(ByteBuffer buf) {
         byte[] bytes;

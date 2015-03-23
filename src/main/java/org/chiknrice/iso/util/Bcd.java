@@ -25,7 +25,7 @@ public class Bcd {
 
     /**
      * @param bytes
-     * @return
+     * @return the decoded BCD digits as String
      */
     public static String decode(byte[] bytes) {
         char[] digits = new char[bytes.length * 2];
@@ -40,7 +40,7 @@ public class Bcd {
 
     /**
      * @param value
-     * @return
+     * @return the value encoded in BCD
      */
     public static byte[] encode(String value) {
         byte[] bytes = new byte[value.length() / 2 + value.length() % 2];
