@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.EqualsBuilder;
@@ -41,24 +42,22 @@ public class DateTimeCodec implements Codec<Date> {
     public DateTimeCodec(String pattern, TimeZone timeZone, Encoding encoding) {
         this.pattern = pattern;
         this.timeZone = timeZone;
-        this.encoding = encoding;
+        switch (encoding) {
+        case CHAR:
+        case BCD:
+            this.encoding = encoding;
+            break;
+        default:
+            throw new ConfigException(String.format("Unsupported encoding %s", encoding));
+        }
     }
 
     public Date decode(ByteBuffer buf) {
         int length = pattern.length();
         byte[] bytes = new byte[Encoding.BCD == encoding ? (length / 2 + length % 2) : length];
         buf.get(bytes);
-        String dateTimeString;
-        switch (encoding) {
-        case CHAR:
-            dateTimeString = new String(bytes, StandardCharsets.ISO_8859_1);
-            break;
-        case BCD:
-            dateTimeString = Bcd.decode(bytes);
-            break;
-        default:
-            throw new CodecException(String.format("Unsupported encoding %s", encoding));
-        }
+        String dateTimeString = encoding.equals(Encoding.CHAR) ? new String(bytes, StandardCharsets.ISO_8859_1) : Bcd
+                .decode(bytes);
 
         SimpleDateFormat format = new SimpleDateFormat(pattern);
         format.setLenient(false);
@@ -75,16 +74,8 @@ public class DateTimeCodec implements Codec<Date> {
         format.setLenient(false);
         format.setTimeZone(timeZone);
         String stringValue = format.format(value);
-        switch (encoding) {
-        case CHAR:
-            buf.put(stringValue.getBytes(StandardCharsets.ISO_8859_1));
-            break;
-        case BCD:
-            buf.put(Bcd.encode(stringValue));
-            break;
-        default:
-            throw new CodecException(String.format("Unsupported encoding %s", encoding));
-        }
+        buf.put(encoding.equals(Encoding.CHAR) ? stringValue.getBytes(StandardCharsets.ISO_8859_1) : Bcd
+                .encode(stringValue));
     }
 
     @Override
