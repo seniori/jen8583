@@ -19,6 +19,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
@@ -46,7 +48,7 @@ public final class AlphaCodec implements Codec<String> {
         this.charset = StandardCharsets.ISO_8859_1;
         this.trim = trim;
         if (fixedLength != null && leftJustified == null) {
-            throw new RuntimeException("Fixed length config requires justified flag");
+            throw new ConfigException("Fixed length config requires justified flag");
         }
         this.leftJustified = leftJustified;
         this.fixedLength = fixedLength;
@@ -62,7 +64,12 @@ public final class AlphaCodec implements Codec<String> {
     public void encode(ByteBuffer buf, String value) {
         String stringValue = value.toString();
         if (fixedLength != null) {
-            stringValue = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", stringValue);
+            if (stringValue.length() > fixedLength) {
+                throw new CodecException(String.format("Value length of %s greater than allowed length %d",
+                        stringValue, fixedLength));
+            } else {
+                stringValue = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", stringValue);
+            }
         }
         buf.put(stringValue.getBytes(charset != null ? charset : StandardCharsets.ISO_8859_1));
     }
