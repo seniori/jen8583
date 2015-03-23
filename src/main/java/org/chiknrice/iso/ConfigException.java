@@ -21,27 +21,27 @@ package org.chiknrice.iso;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
-public class CodecException extends RuntimeException {
+public class ConfigException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
-    public CodecException() {
+    public ConfigException() {
         super();
     }
 
-    public CodecException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public ConfigException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 
-    public CodecException(String message, Throwable cause) {
+    public ConfigException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public CodecException(String message) {
+    public ConfigException(String message) {
         super(message);
     }
 
-    public CodecException(Throwable cause) {
+    public ConfigException(Throwable cause) {
         super(cause);
     }
 

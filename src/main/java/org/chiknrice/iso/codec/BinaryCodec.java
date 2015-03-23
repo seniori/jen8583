@@ -17,6 +17,7 @@ package org.chiknrice.iso.codec;
 
 import java.nio.ByteBuffer;
 
+import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
@@ -46,11 +47,11 @@ public final class BinaryCodec implements Codec<byte[]> {
     }
 
     public void encode(ByteBuffer buf, byte[] bytes) {
-        if(fixedLength != null) {
-            if(fixedLength > bytes.length) {
+        if (fixedLength != null) {
+            if (fixedLength > bytes.length) {
                 buf.position(buf.position() + (fixedLength - bytes.length));
-            } else if(fixedLength < bytes.length) {
-                throw new RuntimeException(String.format("Bytes exceed fixed length %d", fixedLength));
+            } else if (fixedLength < bytes.length) {
+                throw new CodecException(String.format("Bytes exceed fixed length %d", fixedLength));
             }
         }
         buf.put(bytes);

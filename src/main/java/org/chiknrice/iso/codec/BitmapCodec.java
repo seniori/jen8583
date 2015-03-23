@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
@@ -81,7 +82,7 @@ public class BitmapCodec {
             buf.get(bytes);
             break;
         default:
-            throw new RuntimeException(String.format("Unsupported encoding %s", type));
+            throw new CodecException(String.format("Unsupported encoding %s", type));
         }
         return new Bitmap(bytes);
     }
@@ -106,7 +107,7 @@ public class BitmapCodec {
             writeBytes(buf, bits, new byte[2], 1, false);
             break;
         default:
-            throw new RuntimeException(String.format("Unsupported encoding %s", type));
+            throw new CodecException(String.format("Unsupported encoding %s", type));
         }
     }
 

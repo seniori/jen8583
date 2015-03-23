@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
 import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
@@ -43,7 +45,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
         this.subComponentDefs = subComponentDefs;
         this.bitmapCodec = bitmapCodec;
         if (bitmapCodec != null && subComponentDefs.get(1) != null) {
-            throw new RuntimeException("Composite components with bitmap cannot have subfield index 1");
+            throw new ConfigException("Composite components with bitmap cannot have subfield index 1");
         }
     }
 
@@ -113,7 +115,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
             ComponentDef def = getSubComponentDefs().get(index);
 
             if (def == null) {
-                throw new RuntimeException(String.format("No configuration for field %d", index));
+                throw new CodecException(String.format("No configuration for field %d", index));
             }
 
             if (def.getCodec() instanceof TagVarCodec) {

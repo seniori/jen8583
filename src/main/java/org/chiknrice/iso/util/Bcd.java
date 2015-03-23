@@ -15,6 +15,8 @@
  */
 package org.chiknrice.iso.util;
 
+import org.chiknrice.iso.CodecException;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
@@ -50,7 +52,7 @@ public class Bcd {
 
             char c = value.charAt(charPos);
             if (!Character.isDigit(c)) {
-                throw new RuntimeException(String.format("Invalid numeric value [%s]", value));
+                throw new CodecException(String.format("Invalid numeric value [%s]", value));
             }
 
             bytes[bytePos] = (byte) (bytes[bytePos] | ((c - 48) << (hi ? 4 : 0)));

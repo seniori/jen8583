@@ -12,32 +12,32 @@ import org.junit.Test;
  */
 public class TestXmlConfigErrors extends BaseTest {
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testInvalidExtension() {
         IsoMessageDef.build("test-invalid-extension.xml");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testInvalidBitmapComposite() {
         IsoMessageDef.build("test-invalid-bitmap-composite.xml");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testDuplicateMti() {
         IsoMessageDef.build("test-duplicate-mti.xml");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testDuplicateMtiExtension() {
         IsoMessageDef.build("test-duplicate-mti-extension.xml");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testDuplicateField() {
         IsoMessageDef.build("test-duplicate-field.xml");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = ConfigException.class)
     public void testInvalidSchema() {
         IsoMessageDef.build("test-invalid-schema.xml");
     }

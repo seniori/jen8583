@@ -15,6 +15,8 @@
  */
 package org.chiknrice.iso.util;
 
+import org.chiknrice.iso.CodecException;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
@@ -55,7 +57,7 @@ public class Hex {
                 char c = hex.charAt(charPos);
 
                 if (HEX.indexOf(c) == -1) {
-                    throw new RuntimeException(String.format("Invalid hex char %s", c));
+                    throw new CodecException(String.format("Invalid hex char %s", c));
                 }
 
                 bytes[bytePos] |= (HEX.indexOf(c) << (hi ? 4 : 0));

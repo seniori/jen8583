@@ -17,6 +17,8 @@ package org.chiknrice.iso.util;
 
 import java.nio.ByteBuffer;
 
+import org.chiknrice.iso.CodecException;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
@@ -82,7 +84,7 @@ public class Binary {
             buf.put(bytes, 0, bytes.length - maxBytes);
             buf.clear();
             if (((size == 8) ? buf.getLong() : buf.getInt()) > 0) {
-                throw new RuntimeException(String.format("%d trimmed on encoding to %d bytes", value, maxBytes));
+                throw new CodecException(String.format("%d trimmed on encoding to %d bytes", value, maxBytes));
             }
 
             // use trimmed

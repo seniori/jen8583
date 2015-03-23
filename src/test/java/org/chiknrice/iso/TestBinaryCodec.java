@@ -85,7 +85,7 @@ public class TestBinaryCodec extends BaseTest {
         }
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = CodecException.class)
     public void testEncodeExceedingFixedLength() {
         BinaryCodec codec = new BinaryCodec(3);
         byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55 };

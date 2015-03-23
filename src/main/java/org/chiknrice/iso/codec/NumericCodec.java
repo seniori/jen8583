@@ -19,6 +19,8 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.Binary;
@@ -44,10 +46,10 @@ public class NumericCodec implements Codec<Number> {
         this.fixedLength = fixedLength;
         if (Encoding.BINARY.equals(encoding)) {
             if (fixedLength == null) {
-                throw new RuntimeException(String.format(
+                throw new ConfigException(String.format(
                         "Variable length numeric field encoded in %s could exceed long type", encoding));
             } else if (fixedLength > 8) {
-                throw new RuntimeException(String.format(
+                throw new ConfigException(String.format(
                         "Numeric field encoded in %s with %d bytes won't fit long type", encoding, fixedLength));
             }
             supportsBigInteger = false;
@@ -72,7 +74,7 @@ public class NumericCodec implements Codec<Number> {
             value = Binary.decodeLong(bytes);
             break;
         default:
-            throw new RuntimeException(String.format("Unsupported encoding %s", encoding));
+            throw new CodecException(String.format("Unsupported encoding %s", encoding));
         }
         if (value instanceof String) {
             String numericString = ((String) value);
@@ -123,7 +125,7 @@ public class NumericCodec implements Codec<Number> {
                 buf.put(Bcd.encode(stringValue));
                 break;
             default:
-                throw new RuntimeException(String.format("Unsupported encoding %s", encoding));
+                throw new CodecException(String.format("Unsupported encoding %s", encoding));
             }
         }
     }

@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.EqualsBuilder;
@@ -56,7 +57,7 @@ public class DateTimeCodec implements Codec<Date> {
             dateTimeString = Bcd.decode(bytes);
             break;
         default:
-            throw new RuntimeException(String.format("Unsupported encoding %s", encoding));
+            throw new CodecException(String.format("Unsupported encoding %s", encoding));
         }
 
         SimpleDateFormat format = new SimpleDateFormat(pattern);
@@ -65,7 +66,7 @@ public class DateTimeCodec implements Codec<Date> {
         try {
             return format.parse(dateTimeString);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new CodecException(e);
         }
     }
 
@@ -82,7 +83,7 @@ public class DateTimeCodec implements Codec<Date> {
             buf.put(Bcd.encode(stringValue));
             break;
         default:
-            throw new RuntimeException(String.format("Unsupported encoding %s", encoding));
+            throw new CodecException(String.format("Unsupported encoding %s", encoding));
         }
     }
 

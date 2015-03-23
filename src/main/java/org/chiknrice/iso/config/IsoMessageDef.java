@@ -31,6 +31,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.AlphaCodec;
 import org.chiknrice.iso.codec.BinaryCodec;
 import org.chiknrice.iso.codec.BitmapCodec;
@@ -115,7 +116,7 @@ public final class IsoMessageDef {
                 doc = dBuilder.parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(configXml));
                 doc.getDocumentElement().normalize();
             } catch (Exception e) {
-                throw new RuntimeException(e.getMessage(), e);
+                throw new ConfigException(e.getMessage(), e);
             }
 
             Element defaults = (Element) doc.getElementsByTagName("defaults").item(0);
@@ -198,7 +199,7 @@ public final class IsoMessageDef {
                 Element messageDef = (Element) messageList.item(i);
                 Integer mti = getInteger(messageDef, "mti");
                 if (defs.containsKey(mti)) {
-                    throw new RuntimeException(String.format("Duplicate message config for mti %d", mti));
+                    throw new ConfigException(String.format("Duplicate message config for mti %d", mti));
                 }
                 defs.put(mti, new ComponentDef(new CompositeCodec(buildVarComponents(messageDef), bitmapCodec), true));
             }
@@ -218,7 +219,7 @@ public final class IsoMessageDef {
                     Integer index = Integer.valueOf(e.getAttribute("index"));
                     ComponentDef def = buildComponent(e, getMandatory(e));
                     if (fieldDefs.containsKey(index)) {
-                        throw new RuntimeException(String.format("Duplicate field index: %d", index));
+                        throw new ConfigException(String.format("Duplicate field index: %d", index));
                     }
                     fieldDefs.put(index, def);
                 }
@@ -298,7 +299,7 @@ public final class IsoMessageDef {
                 codec = buildCustomCodec(e);
                 break;
             default:
-                throw new RuntimeException("Unexepcted tag: " + e.getTagName());
+                throw new ConfigException("Unexepcted tag: " + e.getTagName());
             }
             return new ComponentDef(codec, mandatory);
         }
@@ -326,11 +327,11 @@ public final class IsoMessageDef {
                     }
                     return codec;
                 } else {
-                    throw new RuntimeException(String.format("Invalid custom class %s", classAttr));
+                    throw new ConfigException(String.format("Invalid custom class %s", classAttr));
                 }
             } catch (ClassNotFoundException | SecurityException | InstantiationException | IllegalAccessException
                     | IllegalArgumentException ex) {
-                throw new RuntimeException(ex.getMessage(), ex);
+                throw new ConfigException(ex.getMessage(), ex);
             }
         }
 
@@ -397,12 +398,12 @@ public final class IsoMessageDef {
                 Integer mtiExisting = getInteger(messageDef, "extends");
                 Integer mti = getInteger(messageDef, "mti");
                 if (existingCodecs.containsKey(mti) || extensions.containsKey(mti)) {
-                    throw new RuntimeException(String.format("Duplicate message config for mti %d", mti));
+                    throw new ConfigException(String.format("Duplicate message config for mti %d", mti));
                 }
 
                 ComponentDef existing = existingCodecs.get(mtiExisting);
                 if (existing == null) {
-                    throw new RuntimeException(String.format("Error extending mti %d, no config available", mti));
+                    throw new ConfigException(String.format("Error extending mti %d, no config available", mti));
                 }
                 CompositeCodec existingCompositeCodec = (CompositeCodec) existing.getCodec();
                 Map<Integer, ComponentDef> clonedFieldsDef = clone(existingCompositeCodec.getSubComponentDefs());
@@ -418,7 +419,7 @@ public final class IsoMessageDef {
                         removeElement = e;
                         break;
                     default:
-                        throw new RuntimeException(String.format("Unknown message extension instruction %s",
+                        throw new ConfigException(String.format("Unknown message extension instruction %s",
                                 e.getTagName()));
                     }
                 }
@@ -445,7 +446,7 @@ public final class IsoMessageDef {
                 switch (e.getTagName()) {
                 case "field":
                     if (componentDefs.remove(index) == null) {
-                        throw new RuntimeException(String.format("Expected field %d not found", index));
+                        throw new ConfigException(String.format("Expected field %d not found", index));
                     }
                     break;
                 case "composite":
@@ -457,9 +458,9 @@ public final class IsoMessageDef {
                         removeFields(((CompositeCodec) codec).getSubComponentDefs(), getSubElements(e));
                         break;
                     }
-                    throw new RuntimeException(String.format("Expected composite field %d not found", index));
+                    throw new ConfigException(String.format("Expected composite field %d not found", index));
                 default:
-                    throw new RuntimeException(String.format("Unknown message remove component instruction %s",
+                    throw new ConfigException(String.format("Unknown message remove component instruction %s",
                             e.getTagName()));
                 }
             }

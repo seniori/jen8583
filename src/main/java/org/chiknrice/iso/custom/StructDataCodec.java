@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.codec.Configurable;
 import org.chiknrice.iso.codec.CustomCodec;
 
@@ -88,11 +89,11 @@ public class StructDataCodec implements CustomCodec, Configurable {
                     map.put(key, val);
                     break;
                 default:
-                    throw new RuntimeException("Unknown segment type: " + segment);
+                    throw new CodecException("Unknown segment type: " + segment);
                 }
             }
         } catch (NumberFormatException | IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
+            throw new CodecException(e.getMessage(), e);
         }
         return map;
     }
