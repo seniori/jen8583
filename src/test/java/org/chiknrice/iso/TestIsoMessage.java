@@ -15,8 +15,8 @@
  */
 package org.chiknrice.iso;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.Map;
@@ -41,11 +41,29 @@ public class TestIsoMessage extends BaseTest {
         f12.put(3, f123);
 
         String returned = m.getField("1.2.3");
-        assertThat(returned, is(f123));
+        assertEquals(returned, f123);
 
         IsoMessage m1 = new IsoMessage(100);
         m1.setField("1.2.3", f123);
-        assertThat(m1, is(m));
+        assertEquals(m1, m);
+    }
+
+    @Test
+    public void testCopyRootField() {
+        IsoMessage m = new IsoMessage(100);
+        Map<Integer, Object> f1 = new TreeMap<>();
+        m.setField(1, f1);
+        Map<Integer, Object> f12 = new TreeMap<>();
+        f1.put(2, f12);
+        String f123 = "A Value";
+        f12.put(3, f123);
+        String f124 = "Another Value";
+        f12.put(4, f124);
+
+        IsoMessage m2 = new IsoMessage(110);
+        m2.copyFields(m, "1.2");
+        assertEquals(f123, m2.getField("1.2.3"));
+        assertEquals(f124, m2.getField("1.2.4"));
     }
 
     @Test

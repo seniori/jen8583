@@ -289,4 +289,10 @@ public class IsoMessage {
         }
     }
 
+    public void copyFields(IsoMessage other, String... indexExpressions) {
+        for (String indexExpression : indexExpressions) {
+            setField(indexExpression, other.getField(indexExpression));
+        }
+    }
+
 }
