@@ -26,6 +26,7 @@ import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.Binary;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
+import org.chiknrice.iso.util.Hex;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -43,6 +44,15 @@ public class NumericCodec implements Codec<Number> {
 
     public NumericCodec(Encoding encoding, Integer fixedLength) {
         this.encoding = encoding;
+        switch (encoding) {
+        case CHAR:
+        case BCD:
+        case BINARY:
+            break;
+        default:
+            throw new ConfigException(String.format("Unsupported encoding %s", encoding));
+        }
+
         this.fixedLength = fixedLength;
         if (Encoding.BINARY.equals(encoding)) {
             if (fixedLength == null) {
@@ -71,6 +81,9 @@ public class NumericCodec implements Codec<Number> {
             value = Bcd.decode(bytes);
             break;
         case BINARY:
+            if (bytes.length > 8 || (bytes.length == 8 && (bytes[0] & 0x80) > 0)) {
+                throw new CodecException(String.format("Value exceeds long type %s", Hex.encode(bytes)));
+            }
             value = Binary.decodeLong(bytes);
             break;
         default:
@@ -101,7 +114,7 @@ public class NumericCodec implements Codec<Number> {
 
     public void encode(ByteBuffer buf, Number value) {
         if (!supportsBigInteger && !((value instanceof Long) || (value instanceof Integer))) {
-            throw new IllegalArgumentException(String.format("Value %s exceeds capacity of field", value));
+            throw new CodecException(String.format("Value %s exceeds capacity of field", value));
         }
         if (Encoding.BINARY == encoding) {
             Long longValue = value.longValue();
