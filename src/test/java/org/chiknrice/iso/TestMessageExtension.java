@@ -32,7 +32,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
-public class TestMessageExtension extends BaseTest {
+public class TestMessageExtension {
 
     @Test
     public void testExtension() {

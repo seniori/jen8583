@@ -16,7 +16,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
  */
-public class TestEqualsHash extends BaseTest {
+public class TestEqualsHash {
 
     @Test
     public void testHash() {

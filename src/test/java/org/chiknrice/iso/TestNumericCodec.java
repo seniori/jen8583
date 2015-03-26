@@ -17,7 +17,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
  */
-public class TestNumericCodec extends BaseTest {
+public class TestNumericCodec {
 
     @Test
     public void testEncodeChar() {

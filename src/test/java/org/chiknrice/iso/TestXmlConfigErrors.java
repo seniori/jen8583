@@ -10,7 +10,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
  */
-public class TestXmlConfigErrors extends BaseTest {
+public class TestXmlConfigErrors {
 
     @Test(expected = ConfigException.class)
     public void testInvalidExtension() {

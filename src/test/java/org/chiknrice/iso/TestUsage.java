@@ -11,7 +11,7 @@ import org.chiknrice.iso.config.IsoMessageDef;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
  */
-public class TestUsage extends BaseTest {
+public class TestUsage {
     
     public void testUsage() {
         IsoMessage isoMessage = new IsoMessage(200);

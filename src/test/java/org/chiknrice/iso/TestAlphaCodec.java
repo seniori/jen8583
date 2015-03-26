@@ -30,7 +30,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
-public class TestAlphaCodec extends BaseTest {
+public class TestAlphaCodec {
 
     @Test
     public void testSimpleEncode() {

@@ -28,7 +28,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  * 
  */
-public class TestIsoMessage extends BaseTest {
+public class TestIsoMessage {
 
     @Test
     public void testValidFieldExpression() {
