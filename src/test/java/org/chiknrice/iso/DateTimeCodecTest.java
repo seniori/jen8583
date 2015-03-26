@@ -23,7 +23,7 @@ import org.junit.Test;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  *
  */
-public class TestDateTimeCodec {
+public class DateTimeCodecTest {
 
     @Test
     public void testEncodeBCD() throws ParseException {
