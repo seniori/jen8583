@@ -1,5 +1,8 @@
 # jen8583
-A flexible *J*ava *EN*coder for ISO-8583 messages
+A *J*ava *EN*coder (and decoder) for [ISO8583](http://en.wikipedia.org/wiki/ISO_8583) messages.
+
+## Overview
+jen8583 is a Java based tool which uses XML to define how parts of the ISO8583 message is encoded & decoded. Although ISO8583 has different [versions](http://en.wikipedia.org/wiki/ISO_8583#ISO_8583_version), jen8583 is not limited to a particular version and is designed to handle only the fundamental structure of an ISO8583 message.  However, the tool provides a facility for a user to handle version specific encoding & decoding.
 
 ## Usage
 
