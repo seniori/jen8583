@@ -29,7 +29,7 @@ public class NumericCodecTest {
     }
 
     @Test
-    public void testEncodeFixedChar() {
+    public void testEncodeFixedLengthChar() {
         NumericCodec codec = new NumericCodec(Encoding.CHAR, 9);
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 1234);
@@ -49,7 +49,7 @@ public class NumericCodecTest {
     }
 
     @Test
-    public void testEncodeFixedBcd() {
+    public void testEncodeFixedLengthBcd() {
         NumericCodec codec = new NumericCodec(Encoding.BCD, 9);
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 12345);
@@ -62,7 +62,7 @@ public class NumericCodecTest {
     }
 
     @Test
-    public void testEncodeFixedBinary() {
+    public void testEncodeFixedLengthBinary() {
         NumericCodec codec = new NumericCodec(Encoding.BINARY, 5);
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 12345);
@@ -102,6 +102,38 @@ public class NumericCodecTest {
         BigInteger value = new BigInteger("8000000000000000", 16);
         assertEquals(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.valueOf(1L)), value);
         codec.encode(buf, value);
+    }
+
+    @Test(expected = ConfigException.class)
+    public void testVariableBinary() {
+        new NumericCodec(Encoding.BINARY);
+    }
+    
+    @Test
+    public void testDecodeChar() {
+        NumericCodec codec = new NumericCodec(Encoding.CHAR);
+        byte[] bytes = new byte[] { 0x31, 0x32, 0x33 };
+        Number decoded = codec.decode(ByteBuffer.wrap(bytes));
+        assertEquals(Integer.class, decoded.getClass());
+        assertEquals("123", decoded.toString());
+    }
+    
+    @Test
+    public void testDecodeFixedLengthChar() {
+        NumericCodec codec = new NumericCodec(Encoding.CHAR, 2);
+        byte[] bytes = new byte[] { 0x31, 0x32, 0x33 };
+        Number decoded = codec.decode(ByteBuffer.wrap(bytes));
+        assertEquals(Integer.class, decoded.getClass());
+        assertEquals("12", decoded.toString());
+    }
+    
+    @Test
+    public void testDecodeBcd() {
+        NumericCodec codec = new NumericCodec(Encoding.BCD);
+        byte[] bytes = new byte[] { 0x05, 0x43, 0x21 };
+        Number decoded = codec.decode(ByteBuffer.wrap(bytes));
+        assertEquals(Integer.class, decoded.getClass());
+        assertEquals("54321", decoded.toString());
     }
 
 }

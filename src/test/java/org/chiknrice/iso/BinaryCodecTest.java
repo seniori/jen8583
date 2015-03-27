@@ -98,7 +98,7 @@ public class BinaryCodecTest {
     }
 
     @Test
-    public void testDecodeFixed() {
+    public void testDecodeFixedLength() {
         BinaryCodec codec = new BinaryCodec(4);
         byte[] bytes = new byte[] { 0x11, 0x22, 0x33, 0x44, 0x55, 0x00, 0x00 };
         ByteBuffer buf = ByteBuffer.wrap(bytes);

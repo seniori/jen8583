@@ -44,15 +44,6 @@ public class NumericCodec implements Codec<Number> {
 
     public NumericCodec(Encoding encoding, Integer fixedLength) {
         this.encoding = encoding;
-        switch (encoding) {
-        case CHAR:
-        case BCD:
-        case BINARY:
-            break;
-        default:
-            throw new ConfigException(String.format("Unsupported encoding %s", encoding));
-        }
-
         this.fixedLength = fixedLength;
         if (Encoding.BINARY.equals(encoding)) {
             if (fixedLength == null) {

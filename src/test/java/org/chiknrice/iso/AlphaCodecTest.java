@@ -127,7 +127,7 @@ public class AlphaCodecTest {
     }
 
     @Test
-    public void testDecodeSpecialCharFixedLength() {
+    public void testDecodeFixedLengthSpecialChar() {
         AlphaCodec codec = new AlphaCodec(false, false, 3);
         byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
