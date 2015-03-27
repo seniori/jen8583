@@ -60,8 +60,21 @@ public class NumericCodec implements Codec<Number> {
     }
 
     public Number decode(ByteBuffer buf) {
-        byte[] bytes = new byte[fixedLength != null ? (Encoding.BCD == encoding ? fixedLength / 2 + fixedLength % 2
-                : fixedLength) : buf.limit() - buf.position()];
+        int bytesToDecode;
+        if (fixedLength != null) {
+            if (buf.remaining() < fixedLength) {
+                throw new CodecException(String.format("Expecting %d bytes, only %d remaining", fixedLength,
+                        buf.remaining()));
+            } else if (Encoding.BCD == encoding) {
+                bytesToDecode = fixedLength / 2 + fixedLength % 2;
+            } else {
+                bytesToDecode = fixedLength;
+            }
+        } else {
+            bytesToDecode = buf.limit() - buf.position();
+        }
+
+        byte[] bytes = new byte[bytesToDecode];
         buf.get(bytes);
         Object value;
         switch (encoding) {
