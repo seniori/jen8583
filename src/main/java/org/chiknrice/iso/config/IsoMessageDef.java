@@ -15,6 +15,7 @@
  */
 package org.chiknrice.iso.config;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.TreeMap;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -85,6 +87,10 @@ public final class IsoMessageDef {
     }
 
     public static IsoMessageDef build(String configXml) {
+        return build(Thread.currentThread().getContextClassLoader().getResourceAsStream(configXml));
+    }
+
+    public static IsoMessageDef build(InputStream configXml) {
         return new ConfigBuilder(configXml).build();
     }
 
@@ -101,20 +107,20 @@ public final class IsoMessageDef {
 
         private final Document doc;
 
-        public ConfigBuilder(String configXml) {
-            Schema schema = null;
+        public ConfigBuilder(InputStream configXml) {
             try {
-                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-                schema = factory.newSchema(new StreamSource(Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream("jen8583.xsd")));
-                Validator validator = schema.newValidator();
-                validator.validate(new StreamSource(Thread.currentThread().getContextClassLoader()
-                        .getResourceAsStream(configXml)));
-
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                dbFactory.setNamespaceAware(true);
                 DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                doc = dBuilder.parse(Thread.currentThread().getContextClassLoader().getResourceAsStream(configXml));
+                doc = dBuilder.parse(configXml);
                 doc.getDocumentElement().normalize();
+
+                SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                Schema schema = factory.newSchema(new StreamSource(Thread.currentThread().getContextClassLoader()
+                        .getResourceAsStream("jen8583.xsd")));
+
+                Validator validator = schema.newValidator();
+                validator.validate(new DOMSource(doc));
             } catch (Exception e) {
                 throw new ConfigException(e.getMessage(), e);
             }
