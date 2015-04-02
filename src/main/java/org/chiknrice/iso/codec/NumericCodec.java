@@ -54,8 +54,10 @@ public class NumericCodec implements Codec<Number> {
                         "Numeric field encoded in %s with %d bytes won't fit long type", encoding, fixedLength));
             }
             supportsBigInteger = false;
-        } else {
+        } else if (Encoding.CHAR.equals(encoding) || Encoding.BCD.equals(encoding)) {
             supportsBigInteger = true;
+        } else {
+            throw new ConfigException(String.format("Unsupported encoding %s", encoding));
         }
     }
 
@@ -77,22 +79,17 @@ public class NumericCodec implements Codec<Number> {
         byte[] bytes = new byte[bytesToDecode];
         buf.get(bytes);
         Object value;
-        switch (encoding) {
-        case CHAR:
+        if (Encoding.CHAR.equals(encoding)) {
             value = new String(bytes, StandardCharsets.ISO_8859_1);
-            break;
-        case BCD:
+        } else if (Encoding.BCD.equals(encoding)) {
             value = Bcd.decode(bytes);
-            break;
-        case BINARY:
-            if (bytes.length > 8 || (bytes.length == 8 && (bytes[0] & 0x80) > 0)) {
+        } else {
+            if (bytes.length == 8 && (bytes[0] & 0x80) > 0) {
                 throw new CodecException(String.format("Value exceeds long type %s", Hex.encode(bytes)));
             }
             value = Binary.decodeLong(bytes);
-            break;
-        default:
-            throw new CodecException(String.format("Unsupported encoding %s", encoding));
         }
+
         if (value instanceof String) {
             String numericString = ((String) value);
             int stringLength = numericString.length();
@@ -122,11 +119,7 @@ public class NumericCodec implements Codec<Number> {
         }
         if (Encoding.BINARY == encoding) {
             Long longValue = value.longValue();
-            if (fixedLength != null) {
-                buf.put(Binary.encode(longValue, fixedLength));
-            } else {
-                buf.put(Binary.encode(longValue, getByteCount(longValue)));
-            }
+            buf.put(Binary.encode(longValue, fixedLength));
         } else {
             String stringValue;
             if (fixedLength != null) {
@@ -134,22 +127,13 @@ public class NumericCodec implements Codec<Number> {
             } else {
                 stringValue = value.toString();
             }
-            switch (encoding) {
-            case CHAR:
+
+            if (Encoding.CHAR.equals(encoding)) {
                 buf.put(stringValue.getBytes(StandardCharsets.ISO_8859_1));
-                break;
-            case BCD:
+            } else {
                 buf.put(Bcd.encode(stringValue));
-                break;
-            default:
-                throw new CodecException(String.format("Unsupported encoding %s", encoding));
             }
         }
-    }
-
-    protected Integer getByteCount(Long value) {
-        int hexChars = Long.toHexString(value).length();
-        return hexChars / 2 + hexChars % 2;
     }
 
     @Override

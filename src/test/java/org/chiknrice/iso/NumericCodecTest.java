@@ -4,6 +4,8 @@
 package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -109,6 +111,11 @@ public class NumericCodecTest {
         new NumericCodec(Encoding.BINARY);
     }
 
+    @Test(expected = ConfigException.class)
+    public void testNullEncoding() {
+        new NumericCodec(null);
+    }
+
     @Test
     public void testDecodeChar() {
         NumericCodec codec = new NumericCodec(Encoding.CHAR);
@@ -169,6 +176,50 @@ public class NumericCodecTest {
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals(Integer.class, decoded.getClass());
         assertEquals("543", decoded.toString());
+    }
+
+    @Test
+    public void testDecodeBinary() {
+        NumericCodec codec = new NumericCodec(Encoding.BINARY, 3);
+        byte[] bytes = new byte[] { 0x05, 0x43, 0x21 };
+        Number decoded = codec.decode(ByteBuffer.wrap(bytes));
+        assertEquals(Long.class, decoded.getClass());
+        assertEquals(344865L, decoded);
+    }
+
+    @Test(expected = CodecException.class)
+    public void testDecodeExceedingLongBinary() {
+        NumericCodec codec = new NumericCodec(Encoding.BINARY, 8);
+        byte[] bytes = new byte[] { 0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+                (byte) 0xFF };
+        Number decoded = codec.decode(ByteBuffer.wrap(bytes));
+        assertEquals(Long.class, decoded.getClass());
+        assertEquals(Long.MAX_VALUE, decoded);
+
+        bytes = new byte[] { (byte) 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        decoded = codec.decode(ByteBuffer.wrap(bytes));
+    }
+
+    @Test
+    public void testGetEncoding() {
+        NumericCodec codec = new NumericCodec(Encoding.BCD);
+        assertEquals(Encoding.BCD, codec.getEncoding());
+    }
+
+    @Test
+    public void testEqualsAndHashCode() {
+        NumericCodec codec1 = new NumericCodec(Encoding.CHAR, 5);
+        NumericCodec codec2 = new NumericCodec(Encoding.CHAR, 5);
+        NumericCodec codec3 = new NumericCodec(Encoding.CHAR, 4);
+        assertTrue(!codec1.equals(null));
+        assertTrue(!codec1.equals("a"));
+        assertTrue(codec1.equals(codec1));
+        assertTrue(codec1.equals(codec2));
+        assertEquals(codec1.hashCode(), codec2.hashCode());
+        assertTrue(!codec1.equals(codec3));
+        assertNotEquals(codec1.hashCode(), codec3.hashCode());
+        assertTrue(!codec2.equals(codec3));
+        assertNotEquals(codec2.hashCode(), codec3.hashCode());
     }
 
 }
