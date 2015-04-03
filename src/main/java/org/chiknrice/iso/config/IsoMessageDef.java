@@ -479,8 +479,8 @@ public final class IsoMessageDef {
                 ComponentDef newDef = null;
 
                 if ("composite-var".equals(e.getTagName())) {
-                    NumericCodec existingTagCodec = null;
-                    NumericCodec existingLengthCodec = null;
+                    Codec<Number> existingTagCodec = null;
+                    Codec<Number> existingLengthCodec = null;
                     BitmapCodec existingBitmapCodec = null;
                     Boolean existingMandatory = null;
                     Map<Integer, ComponentDef> existingSubComponentDefs = null;

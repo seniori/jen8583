@@ -28,9 +28,9 @@ import org.chiknrice.iso.util.Hash;
 public class VarCodec<T> implements Codec<T> {
 
     private final Codec<T> codec;
-    private final NumericCodec lengthCodec;
+    private final Codec<Number> lengthCodec;
 
-    public VarCodec(Codec<T> codec, NumericCodec lengthCodec) {
+    public VarCodec(Codec<T> codec, Codec<Number> lengthCodec) {
         this.codec = codec;
         this.lengthCodec = lengthCodec;
     }
@@ -54,7 +54,7 @@ public class VarCodec<T> implements Codec<T> {
         return codec;
     }
 
-    public NumericCodec getLengthCodec() {
+    public Codec<Number> getLengthCodec() {
         return lengthCodec;
     }
 

@@ -24,14 +24,14 @@ import org.chiknrice.iso.util.Hash;
  */
 public class TagVarCodec<T> extends VarCodec<T> {
 
-    private final NumericCodec tagCodec;
+    private final Codec<Number> tagCodec;
 
-    public TagVarCodec(Codec<T> codec, NumericCodec lengthCodec, NumericCodec tagCodec) {
+    public TagVarCodec(Codec<T> codec, Codec<Number> lengthCodec, Codec<Number> tagCodec) {
         super(codec, lengthCodec);
         this.tagCodec = tagCodec;
     }
 
-    public NumericCodec getTagCodec() {
+    public Codec<Number> getTagCodec() {
         return tagCodec;
     }
 
