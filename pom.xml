@@ -229,6 +229,24 @@
                                 </property>
                             </systemProperties>
                         </configuration>
+                        <executions>
+                            <execution>
+                                <id>acceptance-test</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>test</goal>
+                                </goals>
+                                <configuration>
+                                    <testSourceDirectory>src/test/specs</testSourceDirectory>
+                                    <includes>
+                                        <include>**/*Fixture.java</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>**/*Test.java</exclude>
+                                    </excludes>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
