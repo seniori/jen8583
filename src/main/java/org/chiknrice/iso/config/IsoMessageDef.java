@@ -176,10 +176,10 @@ public final class IsoMessageDef {
             Bitmap.Type msgBitmapType = Bitmap.Type.valueOf(((Element) doc.getElementsByTagName("msg-bitmap").item(0))
                     .getAttribute("type"));
             LOG.info("Bitmap type: {}", msgBitmapType);
-            BitmapCodec bitmapCodec = new BitmapCodec(msgBitmapType);
-            Map<Integer, ComponentDef> fieldsDef = buildFieldsDefs(bitmapCodec);
+            BitmapCodec msgBitmapCodec = new BitmapCodec(msgBitmapType);
+            Map<Integer, ComponentDef> fieldsDef = buildFieldsDefs(msgBitmapCodec);
 
-            buildFieldsDefsExtension(fieldsDef, bitmapCodec);
+            buildFieldsDefsExtension(fieldsDef);
 
             return new IsoMessageDef(headerDef, mtiCodec, fieldsDef);
         }
@@ -396,7 +396,7 @@ public final class IsoMessageDef {
             return subElements;
         }
 
-        private void buildFieldsDefsExtension(Map<Integer, ComponentDef> existingCodecs, BitmapCodec bitmapCodec) {
+        private void buildFieldsDefsExtension(Map<Integer, ComponentDef> existingCodecs) {
             NodeList messageExtList = doc.getElementsByTagName("message-ext");
             Map<Integer, ComponentDef> extensions = new TreeMap<>();
             for (int i = 0; i < messageExtList.getLength(); i++) {
