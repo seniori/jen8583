@@ -16,6 +16,8 @@
 package org.chiknrice.iso;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;
@@ -42,6 +44,7 @@ public class BitmapCodecTest {
         enabledBits.add(5);
         enabledBits.add(8);
         enabledBits.add(13);
+        enabledBits.add(21);
         codec.encode(buf, enabledBits);
 
         byte[] encoded = buf.array();
@@ -50,8 +53,49 @@ public class BitmapCodecTest {
         for (byte b : encoded) {
             sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(b & 0xFF))));
         }
-        String expected = "1110100100001000000000000000000000000000000000000000000000000000";
+        String expected = "1110100100001000000010000000000000000000000000000000000000000000";
         assertEquals(expected, sb.toString());
+    }
+
+    @Test
+    public void tesEncodeHex() {
+        BitmapCodec codec = new BitmapCodec(Type.HEX);
+        ByteBuffer buf = ByteBuffer.allocate(16);
+        Set<Integer> enabledBits = new HashSet<>();
+        enabledBits.add(1);
+        enabledBits.add(2);
+        enabledBits.add(3);
+        enabledBits.add(5);
+        enabledBits.add(8);
+        enabledBits.add(13);
+        enabledBits.add(21);
+        codec.encode(buf, enabledBits);
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+        for (byte b : encoded) {
+            sb.append(String.format("%04d",
+                    Integer.parseInt(Integer.toBinaryString(Integer.parseInt(Character.toString((char) b), 16)))));
+        }
+        String expected = "1110100100001000000010000000000000000000000000000000000000000000";
+        assertEquals(expected, sb.toString());
+    }
+
+    @Test
+    public void testEqualsAndHashCode() {
+        BitmapCodec codec1 = new BitmapCodec(Type.BINARY);
+        BitmapCodec codec2 = new BitmapCodec(Type.BINARY);
+        BitmapCodec codec3 = new BitmapCodec(Type.HEX);
+        assertTrue(!codec1.equals(null));
+        assertTrue(!codec1.equals("a"));
+        assertTrue(codec1.equals(codec1));
+        assertTrue(codec1.equals(codec2));
+        assertEquals(codec1.hashCode(), codec2.hashCode());
+        assertTrue(!codec1.equals(codec3));
+        assertNotEquals(codec1.hashCode(), codec3.hashCode());
+        assertTrue(!codec2.equals(codec3));
+        assertNotEquals(codec2.hashCode(), codec3.hashCode());
     }
 
 }
