@@ -64,6 +64,36 @@ public class DateTimeCodecTest {
     }
 
     @Test
+    public void testDecodeBCD() {
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.BCD);
+        byte[] bytes = new byte[] { 0x05, 0x43, 0x21 };
+        Date decoded = codec.decode(ByteBuffer.wrap(bytes));
+        SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
+        sdf.setTimeZone(utc);
+        assertEquals("054321", sdf.format(decoded));
+    }
+
+    @Test
+    public void testDecodeCHAR() {
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.CHAR);
+        byte[] bytes = new byte[] { 0x30, 0x35, 0x34, 0x33, 0x32, 0x31 };
+        Date decoded = codec.decode(ByteBuffer.wrap(bytes));
+        SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
+        sdf.setTimeZone(utc);
+        assertEquals("054321", sdf.format(decoded));
+    }
+
+    @Test(expected = CodecException.class)
+    public void testParseException() {
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.BCD);
+        byte[] bytes = new byte[] { 0x60, 0x43, 0x21 };
+        codec.decode(ByteBuffer.wrap(bytes));
+    }
+
+    @Test
     public void testGetEncoding() {
         DateTimeCodec codec = new DateTimeCodec("hhmmss", TimeZone.getDefault(), Encoding.BCD);
         assertEquals(Encoding.BCD, codec.getEncoding());
