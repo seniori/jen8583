@@ -35,14 +35,10 @@ public class BitmapCodec {
     private final Type type;
 
     public BitmapCodec(Type type) {
-        switch (type) {
-        case BINARY:
-        case HEX:
-        case COMPRESSED:
-            this.type = type;
-            break;
-        default:
+        if (type == null) {
             throw new ConfigException(String.format("Unsupported encoding %s", type));
+        } else {
+            this.type = type;
         }
     }
 

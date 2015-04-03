@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.chiknrice.iso.codec.BitmapCodec;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
@@ -34,10 +35,10 @@ import org.junit.Test;
 public class BitmapCodecTest {
 
     @Test
-    public void tesEncodeBinary() {
+    public void testEncodeBinary() {
         BitmapCodec codec = new BitmapCodec(Type.BINARY);
-        ByteBuffer buf = ByteBuffer.allocate(8);
-        Set<Integer> enabledBits = new HashSet<>();
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new TreeSet<>();
         enabledBits.add(1);
         enabledBits.add(2);
         enabledBits.add(3);
@@ -45,22 +46,35 @@ public class BitmapCodecTest {
         enabledBits.add(8);
         enabledBits.add(13);
         enabledBits.add(21);
+
+        assertEquals(0, buf.position());
         codec.encode(buf, enabledBits);
+        assertEquals(8, buf.position());
 
         byte[] encoded = buf.array();
 
         StringBuilder sb = new StringBuilder();
-        for (byte b : encoded) {
-            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(b & 0xFF))));
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
         }
         String expected = "1110100100001000000010000000000000000000000000000000000000000000";
         assertEquals(expected, sb.toString());
     }
 
     @Test
-    public void tesEncodeHex() {
+    public void testNonTreeSet() {
+        BitmapCodec codec = new BitmapCodec(Type.BINARY);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new HashSet<>();
+        enabledBits.add(1);
+        codec.encode(buf, enabledBits);
+    }
+
+    @Test
+    public void testEncodeHex() {
         BitmapCodec codec = new BitmapCodec(Type.HEX);
-        ByteBuffer buf = ByteBuffer.allocate(16);
+        ByteBuffer buf = ByteBuffer.allocate(20);
         Set<Integer> enabledBits = new HashSet<>();
         enabledBits.add(1);
         enabledBits.add(2);
@@ -69,17 +83,53 @@ public class BitmapCodecTest {
         enabledBits.add(8);
         enabledBits.add(13);
         enabledBits.add(21);
+
+        assertEquals(0, buf.position());
         codec.encode(buf, enabledBits);
+        assertEquals(16, buf.position());
 
         byte[] encoded = buf.array();
 
         StringBuilder sb = new StringBuilder();
-        for (byte b : encoded) {
-            sb.append(String.format("%04d",
-                    Integer.parseInt(Integer.toBinaryString(Integer.parseInt(Character.toString((char) b), 16)))));
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%04d", Integer.parseInt(Integer.toBinaryString(Integer.parseInt(
+                    Character.toString((char) encoded[i]), 16)))));
         }
         String expected = "1110100100001000000010000000000000000000000000000000000000000000";
         assertEquals(expected, sb.toString());
+    }
+
+    @Test
+    public void testEncodeCompressed() {
+        BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new TreeSet<>();
+        enabledBits.add(4);
+        enabledBits.add(8);
+        enabledBits.add(13);
+        enabledBits.add(16);
+        enabledBits.add(21);
+        enabledBits.add(27);
+
+        assertEquals(0, buf.position());
+        codec.encode(buf, enabledBits);
+        assertEquals(4, buf.position());
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
+        }
+        String expected = "10010001000010011000100000100000";
+        assertEquals(expected, sb.toString());
+    }
+
+    @Test(expected = ConfigException.class)
+    public void testNullEncoding() {
+        new BitmapCodec(null);
     }
 
     @Test
