@@ -20,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
@@ -35,7 +35,15 @@ public class BitmapCodec {
     private final Type type;
 
     public BitmapCodec(Type type) {
-        this.type = type;
+        switch (type) {
+        case BINARY:
+        case HEX:
+        case COMPRESSED:
+            this.type = type;
+            break;
+        default:
+            throw new ConfigException(String.format("Unsupported encoding %s", type));
+        }
     }
 
     /**
@@ -44,8 +52,7 @@ public class BitmapCodec {
      */
     public Bitmap decode(ByteBuffer buf) {
         byte[] bytes;
-        switch (type) {
-        case BINARY:
+        if (Type.BINARY.equals(type)) {
             buf.mark();
             if ((buf.get() & 0x80) == 0) {
                 bytes = new byte[8];
@@ -54,8 +61,7 @@ public class BitmapCodec {
             }
             buf.reset();
             buf.get(bytes);
-            break;
-        case HEX:
+        } else if (Type.HEX.equals(type)) {
             buf.mark();
             if ((Hex.value((char) buf.get()) & 0x8) == 0) {
                 bytes = new byte[16];
@@ -65,8 +71,7 @@ public class BitmapCodec {
             buf.reset();
             buf.get(bytes);
             bytes = Hex.decode(new String(bytes, StandardCharsets.ISO_8859_1));
-            break;
-        case COMPRESSED:
+        } else {
             buf.mark();
             int total = 0;
             bytes = new byte[2];
@@ -80,9 +85,6 @@ public class BitmapCodec {
             buf.reset();
             bytes = new byte[total];
             buf.get(bytes);
-            break;
-        default:
-            throw new CodecException(String.format("Unsupported encoding %s", type));
         }
         return new Bitmap(bytes);
     }
@@ -98,16 +100,10 @@ public class BitmapCodec {
         } else {
             bits = new TreeSet<>(bitsParam);
         }
-        switch (type) {
-        case BINARY:
-        case HEX:
-            writeBytes(buf, bits, new byte[8], 8, Type.HEX.equals(type));
-            break;
-        case COMPRESSED:
+        if (Type.COMPRESSED.equals(type)) {
             writeBytes(buf, bits, new byte[2], 1, false);
-            break;
-        default:
-            throw new CodecException(String.format("Unsupported encoding %s", type));
+        } else {
+            writeBytes(buf, bits, new byte[8], 8, Type.HEX.equals(type));
         }
     }
 
