@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.chiknrice.iso.util.EqualsBuilder;
@@ -110,12 +111,18 @@ public class BitmapCodec {
         for (Integer bit : bits) {
             int byteIndex = byteIndex(bit);
             while (byteIndex >= (bytes.length + offset)) {
+                if ((bytes[0] & 0x80) > 0) {
+                    throw new CodecException("Extension bit should not be set");
+                }
                 bytes[0] |= 0x80;
                 buf.put(hex ? Hex.encode(bytes).getBytes(StandardCharsets.ISO_8859_1) : bytes);
                 offset += bytes.length;
                 bytes = new byte[extendedSize];
             }
             bytes[byteIndex - offset] |= mask(bit);
+        }
+        if ((bytes[0] & 0x80) > 0) {
+            throw new CodecException("Extension bit should not be set");
         }
         buf.put(hex ? Hex.encode(bytes).getBytes(StandardCharsets.ISO_8859_1) : bytes);
     }
