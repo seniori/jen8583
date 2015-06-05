@@ -19,7 +19,6 @@ import java.util.Map;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public interface Configurable {
 

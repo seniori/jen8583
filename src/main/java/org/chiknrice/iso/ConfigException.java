@@ -17,9 +17,8 @@ package org.chiknrice.iso;
 
 /**
  * A runtime exception signifying error during encoding/decoding.
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class ConfigException extends RuntimeException {
 

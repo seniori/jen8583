@@ -15,20 +15,19 @@
  */
 package org.chiknrice.iso;
 
+import org.chiknrice.iso.config.ComponentDef;
+import org.chiknrice.iso.config.IsoMessageDef;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.chiknrice.iso.config.ComponentDef;
-import org.chiknrice.iso.config.IsoMessageDef;
-
 /**
  * The main codec class which encodes and decodes an IsoMessage to and from a byte[]. The byte[] doesn't include the
  * length bytes usually found in front of an ISO8583 message to indicate how long the message is.
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class IsoMessageCodec {
 
@@ -38,9 +37,8 @@ public class IsoMessageCodec {
      * The only constructor of the codec which accepts a configuration read from an xml which conforms to iso8583.xsd.
      * The codec is thread safe but is limited to encoding/decoding messages defined by the config. A separate instance
      * would be required if different config needs to be used.
-     * 
-     * @param config
-     *            the IsoMessageDef instance which represents 1 xml config.
+     *
+     * @param config the IsoMessageDef instance which represents 1 xml config.
      */
     public IsoMessageCodec(IsoMessageDef config) {
         this.config = config;
@@ -48,9 +46,8 @@ public class IsoMessageCodec {
 
     /**
      * Decodes the isoBytes based on the rules defined by the config.
-     * 
-     * @param isoBytes
-     *            the bytes to decode.
+     *
+     * @param isoBytes the bytes to decode.
      * @return the decoded IsoMessage.
      */
     @SuppressWarnings("unchecked")
@@ -81,9 +78,8 @@ public class IsoMessageCodec {
 
     /**
      * Encodes the IsoMessage to bytes based on the rules defined by the config.
-     * 
-     * @param msg
-     *            the message to be encoded.
+     *
+     * @param msg the message to be encoded.
      * @return the encoded bytes.
      */
     @SuppressWarnings("unchecked")

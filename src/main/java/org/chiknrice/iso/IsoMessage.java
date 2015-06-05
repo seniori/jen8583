@@ -15,12 +15,8 @@
  */
 package org.chiknrice.iso;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,9 +26,8 @@ import java.util.regex.Pattern;
  * Adding and getting a field can be done by passing a field index. For sub fields, corresponding methods for setting
  * and retrieving the values are provided. The parameter to these sub field related methods are expressions in the form
  * of a dot separated field indexes (e.g. field 5 in field 2 in field 63, the expression would be 63.2.5).
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 @SuppressWarnings("unchecked")
 public class IsoMessage {
@@ -51,7 +46,7 @@ public class IsoMessage {
 
     /**
      * Returns the header component located at the index. Indexes start with 1.
-     * 
+     *
      * @param index
      * @return the value or null if the header component doesn't exist.
      */
@@ -61,7 +56,7 @@ public class IsoMessage {
 
     /**
      * Returns an unmodifiable copy of the map backing the header values.
-     * 
+     *
      * @return the header map.
      */
     public Map<Integer, Object> getHeader() {
@@ -70,9 +65,8 @@ public class IsoMessage {
 
     /**
      * Clears the header fields and sets the values from the parameter in the order defined by the list.
-     * 
-     * @param header
-     *            a list of header components to be set.
+     *
+     * @param header a list of header components to be set.
      */
     public void setHeader(List<Object> header) {
         this.header.clear();
@@ -83,9 +77,8 @@ public class IsoMessage {
 
     /**
      * Appends a value at the end of the existing header components.
-     * 
-     * @param value
-     *            the value to be set appended
+     *
+     * @param value the value to be set appended
      */
     public void appendHeader(Object value) {
         this.header.put(header.size() + 1, value);
@@ -93,7 +86,7 @@ public class IsoMessage {
 
     /**
      * Returns the mti of the message.
-     * 
+     *
      * @return the mti
      */
     public Integer getMti() {
@@ -102,9 +95,8 @@ public class IsoMessage {
 
     /**
      * Returns the header component located at the index. Indexes start with 2 as field 1 in ISO8583 is the bitmap.
-     * 
-     * @param index
-     *            the index of the field
+     *
+     * @param index the index of the field
      * @return the value or null if the field doesn't exist.
      */
     public <T> T getField(Integer index) {
@@ -113,7 +105,7 @@ public class IsoMessage {
 
     /**
      * Returns the field component located at the position expressed by recursiveExpression.
-     * 
+     *
      * @param recursiveExpression
      * @return the value or null if the field doesn't exist.
      */
@@ -140,7 +132,7 @@ public class IsoMessage {
 
     /**
      * Returns an unmodifiable copy of the map backing the fields.
-     * 
+     *
      * @return the field map.
      */
     public Map<Integer, Object> getFields() {
@@ -168,11 +160,9 @@ public class IsoMessage {
 
     /**
      * Sets the value of a field at the given index.
-     * 
-     * @param index
-     *            the field index.
-     * @param value
-     *            the value.
+     *
+     * @param index the field index.
+     * @param value the value.
      */
     public void setField(Integer index, Object value) {
         if (value == null) {
@@ -184,11 +174,9 @@ public class IsoMessage {
 
     /**
      * Sets the value of the field at the position expressed by recursiveExpression.
-     * 
-     * @param recursiveExpression
-     *            the position where the value should be set.
-     * @param value
-     *            the value.
+     *
+     * @param recursiveExpression the position where the value should be set.
+     * @param value               the value.
      */
     public void setField(String recursiveExpression, Object value) {
         Pattern p = Pattern.compile("\\d+(\\.\\d+)+");

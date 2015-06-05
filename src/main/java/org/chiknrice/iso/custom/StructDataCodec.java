@@ -15,6 +15,10 @@
  */
 package org.chiknrice.iso.custom;
 
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.codec.Configurable;
+import org.chiknrice.iso.codec.CustomCodec;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -22,16 +26,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.chiknrice.iso.CodecException;
-import org.chiknrice.iso.codec.Configurable;
-import org.chiknrice.iso.codec.CustomCodec;
-
 /**
  * An example custom codec. For a custom codec to participate in a message extension, it has to implement Clonable and
  * properly implement clone() method.
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class StructDataCodec implements CustomCodec, Configurable {
 
@@ -57,39 +56,39 @@ public class StructDataCodec implements CustomCodec, Configurable {
         try {
             while ((lengthRead = reader.read(buff, 0, lengthToRead)) != -1) {
                 switch (segment) {
-                case KEY_LENGTH_IND:
-                    String lengthInd = new String(buff, 0, lengthRead);
-                    lengthToRead = Integer.valueOf(lengthInd);
-                    segment = Segment.KEY_LENGTH;
-                    break;
-                case KEY_LENGTH:
-                    String keyLength = new String(buff, 0, lengthRead);
-                    lengthToRead = Integer.valueOf(keyLength);
-                    segment = Segment.KEY;
-                    break;
-                case KEY:
-                    key = new String(buff, 0, lengthRead);
-                    lengthToRead = 1;
-                    segment = Segment.VALUE_LENGTH_IND;
-                    break;
-                case VALUE_LENGTH_IND:
-                    lengthInd = new String(buff, 0, lengthRead);
-                    lengthToRead = Integer.valueOf(lengthInd);
-                    segment = Segment.VALUE_LENGTH;
-                    break;
-                case VALUE_LENGTH:
-                    String valueLength = new String(buff, 0, lengthRead);
-                    lengthToRead = Integer.valueOf(valueLength);
-                    segment = Segment.VALUE;
-                    break;
-                case VALUE:
-                    val = new String(buff, 0, lengthRead);
-                    lengthToRead = 1;
-                    segment = Segment.KEY_LENGTH_IND;
-                    map.put(key, val);
-                    break;
-                default:
-                    throw new CodecException("Unknown segment type: " + segment);
+                    case KEY_LENGTH_IND:
+                        String lengthInd = new String(buff, 0, lengthRead);
+                        lengthToRead = Integer.valueOf(lengthInd);
+                        segment = Segment.KEY_LENGTH;
+                        break;
+                    case KEY_LENGTH:
+                        String keyLength = new String(buff, 0, lengthRead);
+                        lengthToRead = Integer.valueOf(keyLength);
+                        segment = Segment.KEY;
+                        break;
+                    case KEY:
+                        key = new String(buff, 0, lengthRead);
+                        lengthToRead = 1;
+                        segment = Segment.VALUE_LENGTH_IND;
+                        break;
+                    case VALUE_LENGTH_IND:
+                        lengthInd = new String(buff, 0, lengthRead);
+                        lengthToRead = Integer.valueOf(lengthInd);
+                        segment = Segment.VALUE_LENGTH;
+                        break;
+                    case VALUE_LENGTH:
+                        String valueLength = new String(buff, 0, lengthRead);
+                        lengthToRead = Integer.valueOf(valueLength);
+                        segment = Segment.VALUE;
+                        break;
+                    case VALUE:
+                        val = new String(buff, 0, lengthRead);
+                        lengthToRead = 1;
+                        segment = Segment.KEY_LENGTH_IND;
+                        map.put(key, val);
+                        break;
+                    default:
+                        throw new CodecException("Unknown segment type: " + segment);
                 }
             }
         } catch (NumberFormatException | IOException e) {

@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <iso xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.chiknrice.org/jen8583"
-    xsi:schemaLocation="http://www.chiknrice.org/jen8583 ../../main/resources/jen8583.xsd">
+     xsi:schemaLocation="http://www.chiknrice.org/jen8583 ../../main/resources/jen8583.xsd">
 
     <defaults>
-        <var tag-encoding="CHAR" length-encoding="CHAR" />
-        <alpha justified="LEFT" trim="true" />
-        <numeric encoding="CHAR" />
-        <date timezone="SYSTEM" encoding="CHAR" />
-        <ordinality mandatory="true" />
+        <var tag-encoding="CHAR" length-encoding="CHAR"/>
+        <alpha justified="LEFT" trim="true"/>
+        <numeric encoding="CHAR"/>
+        <date timezone="SYSTEM" encoding="CHAR"/>
+        <ordinality mandatory="true"/>
     </defaults>
 
-    <mti-encoding type="CHAR" />
+    <mti-encoding type="CHAR"/>
 
-    <msg-bitmap type="BINARY" />
+    <msg-bitmap type="BINARY"/>
 
     <message mti="100">
         <composite-var index="127" length="2" bitmap-type="BINARY">
-            <alpha index="1" length="2" />
+            <alpha index="1" length="2"/>
         </composite-var>
     </message>
 

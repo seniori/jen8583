@@ -15,23 +15,20 @@
  */
 package org.chiknrice.iso;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import org.chiknrice.iso.codec.BitmapCodec;
+import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
+import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.chiknrice.iso.codec.BitmapCodec;
-import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
-import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- *
  */
 public class BitmapCodecTest {
 
@@ -188,16 +185,16 @@ public class BitmapCodecTest {
 
         for (int i = 1; i <= 128; i++) {
             switch (i) {
-            case 2:
-            case 3:
-            case 5:
-            case 8:
-            case 13:
-            case 21:
-                assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
-                break;
-            default:
-                assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
             }
         }
     }
@@ -215,18 +212,18 @@ public class BitmapCodecTest {
 
         for (int i = 1; i <= 128; i++) {
             switch (i) {
-            case 1:
-            case 2:
-            case 3:
-            case 5:
-            case 8:
-            case 13:
-            case 21:
-            case 66:
-                assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
-                break;
-            default:
-                assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+                case 1:
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                case 66:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
             }
         }
     }

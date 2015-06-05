@@ -15,9 +15,9 @@
  */
 package org.chiknrice.iso;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import org.chiknrice.iso.codec.DateTimeCodec;
+import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -27,13 +27,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.chiknrice.iso.codec.DateTimeCodec;
-import org.chiknrice.iso.config.ComponentDef.Encoding;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- *
  */
 public class DateTimeCodecTest {
 
@@ -47,7 +44,7 @@ public class DateTimeCodecTest {
         Date toEncode = sdf.parse("123456");
         codec.encode(buf, toEncode);
         byte[] bytes = buf.array();
-        assertTrue(Arrays.equals(new byte[] { 0x12, 0x34, 0x56 }, bytes));
+        assertTrue(Arrays.equals(new byte[]{0x12, 0x34, 0x56}, bytes));
     }
 
     @Test
@@ -67,7 +64,7 @@ public class DateTimeCodecTest {
     public void testDecodeBCD() {
         TimeZone utc = TimeZone.getTimeZone("UTC");
         DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.BCD);
-        byte[] bytes = new byte[] { 0x05, 0x43, 0x21 };
+        byte[] bytes = new byte[]{0x05, 0x43, 0x21};
         Date decoded = codec.decode(ByteBuffer.wrap(bytes));
         SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
         sdf.setTimeZone(utc);
@@ -78,7 +75,7 @@ public class DateTimeCodecTest {
     public void testDecodeCHAR() {
         TimeZone utc = TimeZone.getTimeZone("UTC");
         DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.CHAR);
-        byte[] bytes = new byte[] { 0x30, 0x35, 0x34, 0x33, 0x32, 0x31 };
+        byte[] bytes = new byte[]{0x30, 0x35, 0x34, 0x33, 0x32, 0x31};
         Date decoded = codec.decode(ByteBuffer.wrap(bytes));
         SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
         sdf.setTimeZone(utc);
@@ -89,7 +86,7 @@ public class DateTimeCodecTest {
     public void testParseException() {
         TimeZone utc = TimeZone.getTimeZone("UTC");
         DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.BCD);
-        byte[] bytes = new byte[] { 0x60, 0x43, 0x21 };
+        byte[] bytes = new byte[]{0x60, 0x43, 0x21};
         codec.decode(ByteBuffer.wrap(bytes));
     }
 

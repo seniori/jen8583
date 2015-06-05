@@ -15,11 +15,6 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-import java.util.TreeSet;
-
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
@@ -27,9 +22,13 @@ import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 import org.chiknrice.iso.util.Hex;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import java.util.TreeSet;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class BitmapCodec {
 
@@ -105,7 +104,7 @@ public class BitmapCodec {
     }
 
     private static void writeBytes(ByteBuffer buf, TreeSet<Integer> bits, byte[] primaryBitmap, int extendedSize,
-            boolean hex) {
+                                   boolean hex) {
         int offset = 0;
         byte[] bytes = primaryBitmap;
         for (Integer bit : bits) {

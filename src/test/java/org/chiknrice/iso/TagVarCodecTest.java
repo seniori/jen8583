@@ -15,14 +15,6 @@
  */
 package org.chiknrice.iso;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.nio.ByteBuffer;
-
 import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.codec.TagVarCodec;
 import org.chiknrice.iso.codec.VarCodec;
@@ -32,9 +24,14 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.nio.ByteBuffer;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- *
  */
 @RunWith(MockitoJUnitRunner.class)
 public class TagVarCodecTest {

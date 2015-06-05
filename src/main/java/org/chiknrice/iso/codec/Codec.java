@@ -15,9 +15,9 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+
+import java.nio.ByteBuffer;
 
 /**
  * The main contract for a codec used across encoding and decoding of message components. Each field/component of the
@@ -26,16 +26,15 @@ import org.chiknrice.iso.config.ComponentDef.Encoding;
  * the IsoMessageDef. Any issues encountered during encoding/decoding should be throwing a CodecException. Any issues
  * encountered during codec configuration/construction the constructor should throw a ConfigException. A ConfigException
  * should generally happen during startup while CodecException happens when the Codec is being used.
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public interface Codec<T> {
 
     /**
      * The implementation should define how the value T should be decoded from the ByteBuffer provided. The
      * implementation could either decode the value from a certain number of bytes or consume the whole ByteBuffer.
-     * 
+     *
      * @param buf
      * @return the decoded value
      */
@@ -44,16 +43,15 @@ public interface Codec<T> {
     /**
      * The implementation should define how the value T should be encoded to the ByteBuffer provided. The ByteBuffer
      * assumes the value would be encoded from the current position.
-     * 
+     *
      * @param buf
-     * @param value
-     *            the value to be encoded
+     * @param value the value to be encoded
      */
     public void encode(ByteBuffer buf, T value);
 
     /**
      * Defines how the value should be encoded/decoded.
-     * 
+     *
      * @return the encoding defined for the value.
      */
     public Encoding getEncoding();

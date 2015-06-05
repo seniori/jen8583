@@ -15,11 +15,6 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
@@ -28,9 +23,13 @@ import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 

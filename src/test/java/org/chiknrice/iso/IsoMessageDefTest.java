@@ -15,12 +15,6 @@
  */
 package org.chiknrice.iso;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Map;
-
 import org.chiknrice.iso.codec.CompositeCodec;
 import org.chiknrice.iso.codec.NumericCodec;
 import org.chiknrice.iso.codec.VarCodec;
@@ -28,9 +22,12 @@ import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.config.IsoMessageDef;
 import org.junit.Test;
 
+import java.util.Map;
+
+import static org.junit.Assert.*;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class IsoMessageDefTest {
 

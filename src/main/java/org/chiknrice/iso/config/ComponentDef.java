@@ -15,18 +15,17 @@
  */
 package org.chiknrice.iso.config;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.codec.CompositeCodec;
 import org.chiknrice.iso.codec.VarCodec;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 @SuppressWarnings("rawtypes")
 public class ComponentDef {

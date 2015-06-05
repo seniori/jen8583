@@ -15,13 +15,12 @@
  */
 package org.chiknrice.iso.util;
 
-import java.nio.ByteBuffer;
-
 import org.chiknrice.iso.CodecException;
+
+import java.nio.ByteBuffer;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- *
  */
 public class Binary {
 

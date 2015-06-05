@@ -15,18 +15,17 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
+import java.nio.ByteBuffer;
+
 /**
  * A codec implementation to encode/decode byte[] values. The fixedLength parameter pertains
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public final class BinaryCodec implements Codec<byte[]> {
 

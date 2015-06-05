@@ -15,38 +15,9 @@
  */
 package org.chiknrice.iso.config;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TimeZone;
-import java.util.TreeMap;
-
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-
 import org.chiknrice.iso.ConfigException;
-import org.chiknrice.iso.codec.AlphaCodec;
-import org.chiknrice.iso.codec.BinaryCodec;
-import org.chiknrice.iso.codec.BitmapCodec;
+import org.chiknrice.iso.codec.*;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
-import org.chiknrice.iso.codec.Codec;
-import org.chiknrice.iso.codec.CompositeCodec;
-import org.chiknrice.iso.codec.Configurable;
-import org.chiknrice.iso.codec.CustomCodec;
-import org.chiknrice.iso.codec.CustomCodecAdapter;
-import org.chiknrice.iso.codec.DateTimeCodec;
-import org.chiknrice.iso.codec.NumericCodec;
-import org.chiknrice.iso.codec.TagVarCodec;
-import org.chiknrice.iso.codec.VarCodec;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.slf4j.Logger;
@@ -56,9 +27,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public final class IsoMessageDef {
 
@@ -129,33 +111,33 @@ public final class IsoMessageDef {
 
             for (Element e : getSubElements(defaults)) {
                 switch (e.getTagName()) {
-                case "var":
-                    defaultTagEncoding = Encoding.valueOf(e.getAttribute("tag-encoding"));
-                    LOG.info("Default tag encoding: {}", defaultTagEncoding);
-                    defaultLengthEncoding = Encoding.valueOf(e.getAttribute("length-encoding"));
-                    LOG.info("Default length encoding: {}", defaultLengthEncoding);
-                    break;
-                case "alpha":
-                    defaultTrim = Boolean.valueOf(e.getAttribute("trim"));
-                    LOG.info("Default trim: {}", defaultTrim);
-                    defaultLeftJustified = "LEFT".equals(e.getAttribute("justified"));
-                    LOG.info("Default {} justified", defaultLeftJustified ? "LEFT" : "RIGHT");
-                    break;
-                case "numeric":
-                    defaultNumericEncoding = Encoding.valueOf(e.getAttribute("encoding"));
-                    LOG.info("Default numeric encoding: {}", defaultNumericEncoding);
-                    break;
-                case "date":
-                    defaultDateEncoding = Encoding.valueOf(e.getAttribute("encoding"));
-                    LOG.info("Default date encoding: {}", defaultDateEncoding);
-                    String tzDefault = e.getAttribute("timezone");
-                    defaultTimeZone = "SYSTEM".equals(tzDefault) ? TimeZone.getDefault() : TimeZone
-                            .getTimeZone(tzDefault);
-                    LOG.info("Default timezone: {}", defaultTimeZone.getID());
-                    break;
-                case "ordinality":
-                    defaultMandatory = Boolean.valueOf(e.getAttribute("mandatory"));
-                    break;
+                    case "var":
+                        defaultTagEncoding = Encoding.valueOf(e.getAttribute("tag-encoding"));
+                        LOG.info("Default tag encoding: {}", defaultTagEncoding);
+                        defaultLengthEncoding = Encoding.valueOf(e.getAttribute("length-encoding"));
+                        LOG.info("Default length encoding: {}", defaultLengthEncoding);
+                        break;
+                    case "alpha":
+                        defaultTrim = Boolean.valueOf(e.getAttribute("trim"));
+                        LOG.info("Default trim: {}", defaultTrim);
+                        defaultLeftJustified = "LEFT".equals(e.getAttribute("justified"));
+                        LOG.info("Default {} justified", defaultLeftJustified ? "LEFT" : "RIGHT");
+                        break;
+                    case "numeric":
+                        defaultNumericEncoding = Encoding.valueOf(e.getAttribute("encoding"));
+                        LOG.info("Default numeric encoding: {}", defaultNumericEncoding);
+                        break;
+                    case "date":
+                        defaultDateEncoding = Encoding.valueOf(e.getAttribute("encoding"));
+                        LOG.info("Default date encoding: {}", defaultDateEncoding);
+                        String tzDefault = e.getAttribute("timezone");
+                        defaultTimeZone = "SYSTEM".equals(tzDefault) ? TimeZone.getDefault() : TimeZone
+                                .getTimeZone(tzDefault);
+                        LOG.info("Default timezone: {}", defaultTimeZone.getID());
+                        break;
+                    case "ordinality":
+                        defaultMandatory = Boolean.valueOf(e.getAttribute("mandatory"));
+                        break;
                 }
             }
 
@@ -185,7 +167,6 @@ public final class IsoMessageDef {
         }
 
         /**
-         * @param doc
          * @return
          */
         private Map<Integer, ComponentDef> buildHeader() {
@@ -259,53 +240,53 @@ public final class IsoMessageDef {
         private ComponentDef buildComponent(Element e, boolean mandatory) {
             Codec<?> codec;
             switch (e.getTagName()) {
-            case "composite-var":
-                Bitmap.Type bitmapType = getBitmapType(e);
-                BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
-                CompositeCodec compositeCodec = new CompositeCodec(buildVarComponents(e), bitmapCodec);
-                Integer tagDigits = getInteger(e, "tag-length");
+                case "composite-var":
+                    Bitmap.Type bitmapType = getBitmapType(e);
+                    BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
+                    CompositeCodec compositeCodec = new CompositeCodec(buildVarComponents(e), bitmapCodec);
+                    Integer tagDigits = getInteger(e, "tag-length");
 
-                NumericCodec lengthCodec = buildVarLengthCodec(e);
-                if (tagDigits != null) {
-                    codec = new TagVarCodec<>(compositeCodec, lengthCodec, new NumericCodec(getEncoding(e,
-                            "tag-encoding", defaultTagEncoding), tagDigits));
-                } else {
-                    codec = new VarCodec<>(compositeCodec, lengthCodec);
-                }
-                break;
-            case "composite":
-                codec = new CompositeCodec(buildFixedComponents(e));
-                break;
-            case "alpha":
-                codec = new AlphaCodec(getTrim(e), getLeftJustified(e), Integer.valueOf(e.getAttribute("length")));
-                break;
-            case "alpha-var":
-                codec = new VarCodec<>(new AlphaCodec(getTrim(e)), buildVarLengthCodec(e));
-                break;
-            case "numeric":
-                codec = new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding), Integer.valueOf(e
-                        .getAttribute("length")));
-                break;
-            case "numeric-var":
-                codec = new VarCodec<>(new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding)),
-                        buildVarLengthCodec(e));
-                break;
-            case "date":
-                codec = new DateTimeCodec(e.getAttribute("format"), getTimeZone(e), getEncoding(e, "encoding",
-                        defaultDateEncoding));
-                break;
-            case "binary":
-                codec = new BinaryCodec(Integer.valueOf(e.getAttribute("length")));
-                break;
-            case "binary-var":
-                codec = new VarCodec<>(new BinaryCodec(), buildVarLengthCodec(e));
-                break;
-            case "custom":
-            case "custom-var":
-                codec = buildCustomCodec(e);
-                break;
-            default:
-                throw new ConfigException("Unexepcted tag: " + e.getTagName());
+                    NumericCodec lengthCodec = buildVarLengthCodec(e);
+                    if (tagDigits != null) {
+                        codec = new TagVarCodec<>(compositeCodec, lengthCodec, new NumericCodec(getEncoding(e,
+                                "tag-encoding", defaultTagEncoding), tagDigits));
+                    } else {
+                        codec = new VarCodec<>(compositeCodec, lengthCodec);
+                    }
+                    break;
+                case "composite":
+                    codec = new CompositeCodec(buildFixedComponents(e));
+                    break;
+                case "alpha":
+                    codec = new AlphaCodec(getTrim(e), getLeftJustified(e), Integer.valueOf(e.getAttribute("length")));
+                    break;
+                case "alpha-var":
+                    codec = new VarCodec<>(new AlphaCodec(getTrim(e)), buildVarLengthCodec(e));
+                    break;
+                case "numeric":
+                    codec = new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding), Integer.valueOf(e
+                            .getAttribute("length")));
+                    break;
+                case "numeric-var":
+                    codec = new VarCodec<>(new NumericCodec(getEncoding(e, "encoding", defaultNumericEncoding)),
+                            buildVarLengthCodec(e));
+                    break;
+                case "date":
+                    codec = new DateTimeCodec(e.getAttribute("format"), getTimeZone(e), getEncoding(e, "encoding",
+                            defaultDateEncoding));
+                    break;
+                case "binary":
+                    codec = new BinaryCodec(Integer.valueOf(e.getAttribute("length")));
+                    break;
+                case "binary-var":
+                    codec = new VarCodec<>(new BinaryCodec(), buildVarLengthCodec(e));
+                    break;
+                case "custom":
+                case "custom-var":
+                    codec = buildCustomCodec(e);
+                    break;
+                default:
+                    throw new ConfigException("Unexepcted tag: " + e.getTagName());
             }
             return new ComponentDef(codec, mandatory);
         }
@@ -418,15 +399,15 @@ public final class IsoMessageDef {
                 Element removeElement = null;
                 for (Element e : getSubElements(messageDef)) {
                     switch (e.getTagName()) {
-                    case "set":
-                        setElement = e;
-                        break;
-                    case "remove":
-                        removeElement = e;
-                        break;
-                    default:
-                        throw new ConfigException(String.format("Unknown message extension instruction %s",
-                                e.getTagName()));
+                        case "set":
+                            setElement = e;
+                            break;
+                        case "remove":
+                            removeElement = e;
+                            break;
+                        default:
+                            throw new ConfigException(String.format("Unknown message extension instruction %s",
+                                    e.getTagName()));
                     }
                 }
 
@@ -450,24 +431,24 @@ public final class IsoMessageDef {
             for (Element e : subElements) {
                 Integer index = Integer.valueOf(e.getAttribute("index"));
                 switch (e.getTagName()) {
-                case "field":
-                    if (componentDefs.remove(index) == null) {
-                        throw new ConfigException(String.format("Expected field %d not found", index));
-                    }
-                    break;
-                case "composite":
-                    Codec<?> codec = componentDefs.get(index).getCodec();
-                    if (codec instanceof VarCodec) {
-                        codec = ((VarCodec<?>) codec).getCodec();
-                    }
-                    if (codec instanceof CompositeCodec) {
-                        removeFields(((CompositeCodec) codec).getSubComponentDefs(), getSubElements(e));
+                    case "field":
+                        if (componentDefs.remove(index) == null) {
+                            throw new ConfigException(String.format("Expected field %d not found", index));
+                        }
                         break;
-                    }
-                    throw new ConfigException(String.format("Expected composite field %d not found", index));
-                default:
-                    throw new ConfigException(String.format("Unknown message remove component instruction %s",
-                            e.getTagName()));
+                    case "composite":
+                        Codec<?> codec = componentDefs.get(index).getCodec();
+                        if (codec instanceof VarCodec) {
+                            codec = ((VarCodec<?>) codec).getCodec();
+                        }
+                        if (codec instanceof CompositeCodec) {
+                            removeFields(((CompositeCodec) codec).getSubComponentDefs(), getSubElements(e));
+                            break;
+                        }
+                        throw new ConfigException(String.format("Expected composite field %d not found", index));
+                    default:
+                        throw new ConfigException(String.format("Unknown message remove component instruction %s",
+                                e.getTagName()));
                 }
             }
         }
@@ -516,9 +497,9 @@ public final class IsoMessageDef {
 
                     if (existingSubComponentDefs != null
                             && EqualsBuilder.newInstance(existingTagCodec, newTagCodec)
-                                    .append(existingLengthCodec, newLengthCodec)
-                                    .append(existingBitmapCodec, newBitmapCodec)
-                                    .append(existingMandatory, newMandatory).isEqual()) {
+                            .append(existingLengthCodec, newLengthCodec)
+                            .append(existingBitmapCodec, newBitmapCodec)
+                            .append(existingMandatory, newMandatory).isEqual()) {
                         setVarFields(existingSubComponentDefs, getSubElements(e));
                         CompositeCodec compositeCodec = new CompositeCodec(existingSubComponentDefs, newBitmapCodec);
                         Codec<?> codec = null;

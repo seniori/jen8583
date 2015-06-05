@@ -15,18 +15,17 @@
  */
 package org.chiknrice.iso;
 
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class IsoMessageTest {
 

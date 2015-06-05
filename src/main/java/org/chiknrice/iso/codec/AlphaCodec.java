@@ -15,22 +15,21 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
 /**
  * A codec implementation for alphanumeric fields. The only supported character set is ISO 8859-1 (single byte character
  * set) to encode/decode the string to and from byte[]. The codec can be configured to be fixed length where option for
  * left justified when padding is available. Trim option is also available after decoding.
- * 
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public final class AlphaCodec implements Codec<String> {
 

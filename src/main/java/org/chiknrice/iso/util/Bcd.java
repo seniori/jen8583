@@ -19,7 +19,6 @@ import org.chiknrice.iso.CodecException;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- *
  */
 public class Bcd {
 

@@ -17,7 +17,6 @@ package org.chiknrice.iso.codec;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public interface CustomCodec {
 

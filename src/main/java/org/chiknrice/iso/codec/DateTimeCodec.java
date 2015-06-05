@@ -15,13 +15,6 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
-
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
@@ -29,9 +22,15 @@ import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class DateTimeCodec implements Codec<Date> {
 
@@ -43,12 +42,12 @@ public class DateTimeCodec implements Codec<Date> {
         this.pattern = pattern;
         this.timeZone = timeZone;
         switch (encoding) {
-        case CHAR:
-        case BCD:
-            this.encoding = encoding;
-            break;
-        default:
-            throw new ConfigException(String.format("Unsupported encoding %s", encoding));
+            case CHAR:
+            case BCD:
+                this.encoding = encoding;
+                break;
+            default:
+                throw new ConfigException(String.format("Unsupported encoding %s", encoding));
         }
     }
 

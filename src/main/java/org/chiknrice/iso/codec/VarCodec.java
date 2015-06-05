@@ -15,15 +15,14 @@
  */
 package org.chiknrice.iso.codec;
 
-import java.nio.ByteBuffer;
-
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class VarCodec<T> implements Codec<T> {
 

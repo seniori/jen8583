@@ -15,22 +15,17 @@
  */
 package org.chiknrice.iso.codec;
 
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
+import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.chiknrice.iso.util.*;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
-import org.chiknrice.iso.CodecException;
-import org.chiknrice.iso.ConfigException;
-import org.chiknrice.iso.config.ComponentDef.Encoding;
-import org.chiknrice.iso.util.Bcd;
-import org.chiknrice.iso.util.Binary;
-import org.chiknrice.iso.util.EqualsBuilder;
-import org.chiknrice.iso.util.Hash;
-import org.chiknrice.iso.util.Hex;
-
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class NumericCodec implements Codec<Number> {
 

@@ -20,7 +20,6 @@ import org.chiknrice.iso.util.Hash;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class TagVarCodec<T> extends VarCodec<T> {
 

@@ -15,20 +15,17 @@
  */
 package org.chiknrice.iso;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
 import org.chiknrice.iso.codec.AlphaCodec;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.junit.Test;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
+import static org.junit.Assert.*;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
- * 
  */
 public class AlphaCodecTest {
 
@@ -97,7 +94,7 @@ public class AlphaCodecTest {
     @Test
     public void testDecode() {
         AlphaCodec codec = new AlphaCodec(false);
-        byte[] bytes = new byte[] { 0x31, 0x32, 0x33 };
+        byte[] bytes = new byte[]{0x31, 0x32, 0x33};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals("123", decoded);
     }
@@ -105,7 +102,7 @@ public class AlphaCodecTest {
     @Test
     public void testDecodeSpecialChar() {
         AlphaCodec codec = new AlphaCodec(false);
-        byte[] bytes = new byte[] { (byte) 0xfc };
+        byte[] bytes = new byte[]{(byte) 0xfc};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals("ü", decoded);
     }
@@ -113,7 +110,7 @@ public class AlphaCodecTest {
     @Test
     public void testDecodeSpecialCharNoTrim() {
         AlphaCodec codec = new AlphaCodec(false);
-        byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
+        byte[] bytes = new byte[]{0x20, (byte) 0xfc, 0x20, 0x20, 0x20};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals(" ü   ", decoded);
     }
@@ -121,7 +118,7 @@ public class AlphaCodecTest {
     @Test
     public void testDecodeSpecialCharTrim() {
         AlphaCodec codec = new AlphaCodec(true);
-        byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
+        byte[] bytes = new byte[]{0x20, (byte) 0xfc, 0x20, 0x20, 0x20};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals("ü", decoded);
     }
@@ -129,7 +126,7 @@ public class AlphaCodecTest {
     @Test
     public void testDecodeFixedLengthSpecialChar() {
         AlphaCodec codec = new AlphaCodec(false, false, 3);
-        byte[] bytes = new byte[] { 0x20, (byte) 0xfc, 0x20, 0x20, 0x20 };
+        byte[] bytes = new byte[]{0x20, (byte) 0xfc, 0x20, 0x20, 0x20};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertEquals(" ü ", decoded);
     }
