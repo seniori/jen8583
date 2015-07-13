@@ -1,17 +1,17 @@
-/* 
+/*
  * Copyright (c) 2014 Ian Bondoc
- * 
+ *
  * This file is part of Jen8583
- * 
+ *
  * Jen8583 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation, either version 3 of the License, or(at your option) any later version.
- * 
+ *
  * Jen8583 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program. If not, see
  * <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package org.chiknrice.iso;
 
@@ -56,6 +56,34 @@ public class BitmapCodecTest {
             sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
         }
         String expected = "0110100100001000000010000000000000000000000000000000000000000000";
+        assertEquals(expected, sb.toString());
+    }
+
+    @Test
+    public void testEncodeExtendedBinary() {
+        BitmapCodec codec = new BitmapCodec(Type.BINARY);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new TreeSet<>();
+        enabledBits.add(2);
+        enabledBits.add(3);
+        enabledBits.add(5);
+        enabledBits.add(8);
+        enabledBits.add(13);
+        enabledBits.add(21);
+        enabledBits.add(66);
+
+        assertEquals(0, buf.position());
+        codec.encode(buf, enabledBits);
+        assertEquals(16, buf.position());
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
+        }
+        String expected = "11101001000010000000100000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000";
         assertEquals(expected, sb.toString());
     }
 
@@ -174,7 +202,7 @@ public class BitmapCodecTest {
     }
 
     @Test
-    public void decodeBinary() {
+    public void testDecodeBinary() {
         byte[] bytes = new byte[8];
         bytes[0] = (byte) Integer.parseInt("01101001", 2);
         bytes[1] = (byte) Integer.parseInt("00001000", 2);
@@ -200,7 +228,7 @@ public class BitmapCodecTest {
     }
 
     @Test
-    public void decodeExtendedBinary() {
+    public void testDecodeExtendedBinary() {
         byte[] bytes = new byte[16];
         bytes[0] = (byte) Integer.parseInt("11101001", 2);
         bytes[1] = (byte) Integer.parseInt("00001000", 2);
