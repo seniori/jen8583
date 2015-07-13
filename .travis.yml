@@ -5,4 +5,4 @@ jdk:
   - oraclejdk7
 
 after_success:
-  - mvn clean cobertura:cobertura coveralls:report -P cobertura.pmd
+  - mvn clean cobertura:cobertura coveralls:report -Dcobertura.report.format=xml -P cobertura.pmd
