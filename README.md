@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/chiknrice/jen8583.svg?branch=master)](https://travis-ci.org/chiknrice/jen8583)
 
+[![Coverage Status](https://coveralls.io/repos/chiknrice/jen8583/badge.svg?branch=master&service=github)](https://coveralls.io/github/chiknrice/jen8583?branch=master)
+
 # jen8583
 A *J*ava *EN*coder (and decoder) for [ISO8583](http://en.wikipedia.org/wiki/ISO_8583) messages.
 
