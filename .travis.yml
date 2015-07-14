@@ -4,5 +4,5 @@ jdk:
   - oraclejdk8
   - oraclejdk7
 
-after_success:
+script:
   - mvn clean cobertura:cobertura coveralls:report -Dcobertura.report.format=xml -P cobertura.pmd
