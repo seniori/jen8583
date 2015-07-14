@@ -21,6 +21,7 @@ import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -56,34 +57,6 @@ public class BitmapCodecTest {
             sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
         }
         String expected = "0110100100001000000010000000000000000000000000000000000000000000";
-        assertEquals(expected, sb.toString());
-    }
-
-    @Test
-    public void testEncodeExtendedBinary() {
-        BitmapCodec codec = new BitmapCodec(Type.BINARY);
-        ByteBuffer buf = ByteBuffer.allocate(20);
-        Set<Integer> enabledBits = new TreeSet<>();
-        enabledBits.add(2);
-        enabledBits.add(3);
-        enabledBits.add(5);
-        enabledBits.add(8);
-        enabledBits.add(13);
-        enabledBits.add(21);
-        enabledBits.add(66);
-
-        assertEquals(0, buf.position());
-        codec.encode(buf, enabledBits);
-        assertEquals(16, buf.position());
-
-        byte[] encoded = buf.array();
-
-        StringBuilder sb = new StringBuilder();
-
-        for (int i = 0; i < buf.position(); i++) {
-            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
-        }
-        String expected = "11101001000010000000100000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000";
         assertEquals(expected, sb.toString());
     }
 
@@ -203,6 +176,7 @@ public class BitmapCodecTest {
 
     @Test
     public void testDecodeBinary() {
+        // 8 bytes for primary bitmap
         byte[] bytes = new byte[8];
         bytes[0] = (byte) Integer.parseInt("01101001", 2);
         bytes[1] = (byte) Integer.parseInt("00001000", 2);
@@ -229,6 +203,7 @@ public class BitmapCodecTest {
 
     @Test
     public void testDecodeExtendedBinary() {
+        // 16 bytes for primary + secondary bitmap
         byte[] bytes = new byte[16];
         bytes[0] = (byte) Integer.parseInt("11101001", 2);
         bytes[1] = (byte) Integer.parseInt("00001000", 2);
@@ -248,6 +223,146 @@ public class BitmapCodecTest {
                 case 13:
                 case 21:
                 case 66:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testDecodeHexAllCaps() {
+        // 16 bytes for primary bitmap (16 hex characters for an 8 byte bitmap)
+
+        // [0] 01101001 = 0x69
+        // [1] 00001000 = 0x08
+        // [2] 00001000 = 0x08
+        // [3] 10101011 = 0xAB
+        byte[] bytes = "690808AB00000000".getBytes(StandardCharsets.ISO_8859_1);
+
+        BitmapCodec codec = new BitmapCodec(Type.HEX);
+        Bitmap bitmap = codec.decode(ByteBuffer.wrap(bytes));
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                case 25:
+                case 27:
+                case 29:
+                case 31:
+                case 32:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testDecodeHexLowerCase() {
+        // 16 bytes for primary bitmap (16 hex characters for an 8 byte bitmap)
+
+        // [0] 01101001 = 0x69
+        // [1] 00001000 = 0x08
+        // [2] 00001000 = 0x08
+        // [3] 10101011 = 0xab
+        byte[] bytes = "690808ab00000000".getBytes(StandardCharsets.ISO_8859_1);
+
+        BitmapCodec codec = new BitmapCodec(Type.HEX);
+        Bitmap bitmap = codec.decode(ByteBuffer.wrap(bytes));
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                case 25:
+                case 27:
+                case 29:
+                case 31:
+                case 32:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testDecodeHexAllCapsExtended() {
+        // 16 bytes for primary bitmap (16 hex characters for an 8 byte bitmap)
+
+        // [0] 11101001 = 0xE9
+        // [1] 00001000 = 0x08
+        // [2] 00001000 = 0x08
+        // [7] 00000001 = 0x01
+        byte[] bytes = "E90808AB000000000000000000000001".getBytes(StandardCharsets.ISO_8859_1);
+
+        BitmapCodec codec = new BitmapCodec(Type.HEX);
+        Bitmap bitmap = codec.decode(ByteBuffer.wrap(bytes));
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 1:
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                case 25:
+                case 27:
+                case 29:
+                case 31:
+                case 32:
+                case 128:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testDecodeHexLowerCaseExtended() {
+        // 16 bytes for primary bitmap (16 hex characters for an 8 byte bitmap)
+
+        // [0] 11101001 = 0xe9
+        // [1] 00001000 = 0x08
+        // [2] 00001000 = 0x08
+        // [7] 00000001 = 0x01
+        byte[] bytes = "e90808AB000000000000000000000001".getBytes(StandardCharsets.ISO_8859_1);
+
+        BitmapCodec codec = new BitmapCodec(Type.HEX);
+        Bitmap bitmap = codec.decode(ByteBuffer.wrap(bytes));
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 1:
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                case 25:
+                case 27:
+                case 29:
+                case 31:
+                case 32:
+                case 128:
                     assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
                     break;
                 default:
