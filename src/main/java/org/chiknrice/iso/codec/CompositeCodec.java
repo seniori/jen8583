@@ -24,23 +24,27 @@ import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedMap;
 import java.util.TreeMap;
+
+import static java.lang.String.format;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
-    private final Map<Integer, ComponentDef> subComponentDefs;
+    private final SortedMap<Integer, ComponentDef> subComponentDefs;
     private final BitmapCodec bitmapCodec;
 
-    public CompositeCodec(Map<Integer, ComponentDef> subComponentDefs) {
+    public CompositeCodec(SortedMap<Integer, ComponentDef> subComponentDefs) {
         this(subComponentDefs, null);
     }
 
-    public CompositeCodec(Map<Integer, ComponentDef> subComponentDefs, BitmapCodec bitmapCodec) {
+    public CompositeCodec(SortedMap<Integer, ComponentDef> subComponentDefs, BitmapCodec bitmapCodec) {
         this.subComponentDefs = subComponentDefs;
         this.bitmapCodec = bitmapCodec;
         if (bitmapCodec != null && subComponentDefs.get(1) != null) {
@@ -57,7 +61,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
             if (bitmap != null && !bitmap.isSet(index)) {
                 if (def.isMandatory()) {
-                    throw new CodecException(String.format("Missing mandatory component %s", def));
+                    throw new CodecException(format("Missing mandatory component %s", def));
                 }
                 continue;
             }
@@ -66,7 +70,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
                 // nothing to do with a tag yet
                 Integer tag = ((TagVarCodec<?>) def.getCodec()).getTagCodec().decode(buf).intValue();
                 if (!index.equals(tag)) {
-                    throw new CodecException(String.format("Unexpected TLV tag %d", tag));
+                    throw new CodecException(format("Unexpected TLV tag %d", tag));
                 }
             }
 
@@ -88,12 +92,12 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
                 if (e instanceof CodecException) {
                     throw e;
                 } else {
-                    throw new CodecException(String.format("Failed to decode %s", def), e);
+                    throw new CodecException(format("Failed to decode %s", def), e);
                 }
             }
 
             if (value == null && def.isMandatory()) {
-                throw new CodecException(String.format("Null mandatory component %s", def));
+                throw new CodecException(format("Null mandatory component %s", def));
             }
 
             values.put(index, value);
@@ -108,13 +112,18 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
     @SuppressWarnings("unchecked")
     public void encode(ByteBuffer buf, Map<Integer, Object> values) {
         encodeBitmap(buf, values);
-        for (Entry<Integer, Object> valueEntry : values.entrySet()) {
-            Integer index = valueEntry.getKey();
-            Object value = valueEntry.getValue();
-            ComponentDef def = getSubComponentDefs().get(index);
+        Map<Integer, Object> tempMap = new HashMap<>(values);
+        for (Entry<Integer, ComponentDef> defEntry : subComponentDefs.entrySet()) {
+            Integer index = defEntry.getKey();
+            ComponentDef def = defEntry.getValue();
+            Object value = tempMap.remove(index);
 
-            if (def == null) {
-                throw new CodecException(String.format("No configuration for field %d", index));
+            if (value == null) {
+                if (def.isMandatory()) {
+                    throw new CodecException(format("Missing mandatory component %s", def));
+                } else {
+                    continue;
+                }
             }
 
             if (def.getCodec() instanceof TagVarCodec) {
@@ -137,7 +146,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
                 if (e instanceof CodecException) {
                     throw e;
                 } else {
-                    throw new CodecException(String.format("Failed to encode %s", def), e);
+                    throw new CodecException(format("Failed to encode %s", def), e);
                 }
             }
 
@@ -154,6 +163,10 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
                 buf.position(endPos);
             }
         }
+
+        if (tempMap.size() > 0) {
+            throw new CodecException(format("Unexpected components %s", tempMap));
+        }
     }
 
     protected void encodeBitmap(ByteBuffer buf, Map<Integer, Object> values) {
@@ -167,7 +180,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
         return Encoding.BINARY;
     }
 
-    public Map<Integer, ComponentDef> getSubComponentDefs() {
+    public SortedMap<Integer, ComponentDef> getSubComponentDefs() {
         return subComponentDefs;
     }
 

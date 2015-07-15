@@ -210,7 +210,7 @@ public final class IsoMessageDef {
             LOG.info("MTI encoding: {}", mtiEncoding);
 
             ComponentDef headerDef = null;
-            Map<Integer, ComponentDef> headerComponents = buildHeader();
+            SortedMap<Integer, ComponentDef> headerComponents = buildHeader();
             if (headerComponents != null) {
                 headerDef = new ComponentDef(new CompositeCodec(headerComponents), true);
             }
@@ -229,7 +229,7 @@ public final class IsoMessageDef {
         /**
          * @return
          */
-        private Map<Integer, ComponentDef> buildHeader() {
+        private SortedMap<Integer, ComponentDef> buildHeader() {
             Element headerElement = (Element) doc.getElementsByTagName(TAG_HEADER).item(0);
             return headerElement != null ? buildFixedComponents(headerElement) : null;
         }
@@ -257,9 +257,9 @@ public final class IsoMessageDef {
          * @param ce
          * @return
          */
-        private Map<Integer, ComponentDef> buildVarComponents(Element ce) {
+        private SortedMap<Integer, ComponentDef> buildVarComponents(Element ce) {
             List<Element> fields = getSubElements(ce);
-            Map<Integer, ComponentDef> fieldDefs = null;
+            SortedMap<Integer, ComponentDef> fieldDefs = null;
             if (fields.size() > 0) {
                 fieldDefs = new TreeMap<>();
                 for (Element e : fields) {
@@ -279,9 +279,9 @@ public final class IsoMessageDef {
          * @param ce
          * @return
          */
-        private Map<Integer, ComponentDef> buildFixedComponents(Element ce) {
+        private SortedMap<Integer, ComponentDef> buildFixedComponents(Element ce) {
             List<Element> fields = getSubElements(ce);
-            Map<Integer, ComponentDef> fieldDefs = null;
+            SortedMap<Integer, ComponentDef> fieldDefs = null;
             if (fields.size() > 0) {
                 fieldDefs = new TreeMap<>();
                 int index = 1;
@@ -453,7 +453,7 @@ public final class IsoMessageDef {
                     throw new ConfigException(format("Error extending mti %d, no config available", mti));
                 }
                 CompositeCodec existingCompositeCodec = (CompositeCodec) existing.getCodec();
-                Map<Integer, ComponentDef> clonedFieldsDef = clone(existingCompositeCodec.getSubComponentDefs());
+                SortedMap<Integer, ComponentDef> clonedFieldsDef = clone(existingCompositeCodec.getSubComponentDefs());
 
                 Element setElement = null;
                 Element removeElement = null;
@@ -523,7 +523,7 @@ public final class IsoMessageDef {
                     Codec<Number> existingLengthCodec = null;
                     BitmapCodec existingBitmapCodec = null;
                     Boolean existingMandatory = null;
-                    Map<Integer, ComponentDef> existingSubComponentDefs = null;
+                    SortedMap<Integer, ComponentDef> existingSubComponentDefs = null;
 
                     ComponentDef existingDef = components.get(index);
                     if (existingDef != null) {
@@ -576,8 +576,8 @@ public final class IsoMessageDef {
             }
         }
 
-        private Map<Integer, ComponentDef> clone(Map<Integer, ComponentDef> existingDefs) {
-            Map<Integer, ComponentDef> clone = new TreeMap<>();
+        private SortedMap<Integer, ComponentDef> clone(SortedMap<Integer, ComponentDef> existingDefs) {
+            SortedMap<Integer, ComponentDef> clone = new TreeMap<>();
             for (Entry<Integer, ComponentDef> defEntry : existingDefs.entrySet()) {
                 Integer index = defEntry.getKey();
                 ComponentDef def = defEntry.getValue();
@@ -614,7 +614,7 @@ public final class IsoMessageDef {
         }
 
         private CompositeCodec cloneComposite(CompositeCodec composite) {
-            Map<Integer, ComponentDef> clone = clone(composite.getSubComponentDefs());
+            SortedMap<Integer, ComponentDef> clone = clone(composite.getSubComponentDefs());
             return new CompositeCodec(clone, composite.getBitmapCodec());
         }
 
