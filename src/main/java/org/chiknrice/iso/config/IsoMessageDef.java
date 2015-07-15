@@ -118,7 +118,7 @@ public final class IsoMessageDef {
         private static final String ATTR_TYPE = "type";
         private static final String ATTR_BITMAP_TYPE = "bitmap-type";
         private static final String ATTR_INDEX = "index";
-        private static final String ATTR_CLASS = "class";
+        private static final String ATTR_CODEC = "codec";
         private static final String ATTR_KEY = "key";
         private static final String ATTR_VALUE = "value";
 
@@ -349,12 +349,12 @@ public final class IsoMessageDef {
         }
 
         private Codec<?> buildCustomCodec(Element e) {
-            String classAttr = e.getAttribute(ATTR_CLASS);
-            Class<?> customClass;
+            String classAttr = e.getAttribute(ATTR_CODEC);
+            Class<?> customCodecClass;
             try {
-                customClass = Class.forName(classAttr);
-                if (CustomCodec.class.isAssignableFrom(customClass)) {
-                    CustomCodec customCodec = (CustomCodec) customClass.newInstance();
+                customCodecClass = Class.forName(classAttr);
+                if (CustomCodec.class.isAssignableFrom(customCodecClass)) {
+                    CustomCodec customCodec = (CustomCodec) customCodecClass.newInstance();
 
                     Map<String, String> params = new HashMap<>();
                     List<Element> paramElements = getSubElements(e);

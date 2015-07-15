@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.chiknrice.org/jen8583"
         xmlns:tns="http://www.chiknrice.org/jen8583"
-        elementFormDefault="qualified" version="0.0.4">
+        elementFormDefault="qualified" version="0.0.5">
 
     <!--
 
@@ -25,58 +25,99 @@
     <element name="iso">
         <complexType>
             <sequence>
-                <element name="defaults">
+                <!-- The mandatory defaults section which defines defaults related to field definitions.
+                 Defaults are set to define the configuration convention (e.g. no tag-encoding specified
+                 defaults to  BCD) -->
+                <element name="defaults" minOccurs="1">
                     <complexType>
                         <sequence>
-                            <element name="var">
+                            <element name="var" minOccurs="1">
                                 <complexType>
+                                    <!-- Default encoding of tag for TLV fields -->
                                     <attribute name="tag-encoding" type="tns:numeric-encoding" use="required"/>
+                                    <!-- Default encoding of length for TLV fields and length prefixes of variable length fields -->
                                     <attribute name="length-encoding" type="tns:numeric-encoding" use="required"/>
                                 </complexType>
                             </element>
-                            <element name="alpha">
+                            <element name="alpha" minOccurs="1">
                                 <complexType>
+                                    <!-- Specifies if text is left or right justified when encoding fixed length fields.
+                                    Valid values are "LEFT" or "RIGHT".  The padding is a space character -->
                                     <attribute name="justified" type="tns:justified-type" use="required"/>
+                                    <!-- Trim rule of fixed length fields which defines if white spaces are trimmed by
+                                    default during decoding -->
                                     <attribute name="trim" type="boolean" use="required"/>
                                 </complexType>
                             </element>
-                            <element name="numeric">
+                            <element name="numeric" minOccurs="1">
                                 <complexType>
+                                    <!-- Default encoding for all numeric fields fixed/variable length -->
                                     <attribute name="encoding" type="tns:numeric-encoding" use="required"/>
                                 </complexType>
                             </element>
-                            <element name="date">
+                            <element name="date" minOccurs="1">
                                 <complexType>
+                                    <!-- Default encoding for date fields -->
                                     <attribute name="encoding" type="tns:date-encoding" use="required"/>
+                                    <!-- Default timezone to use when encoding/parsing date types.  Values accepted are
+                                     "SYSTEM" to specify the default timezone or a valid java.util.TimeZone id -->
                                     <attribute name="timezone" type="token" use="required"/>
                                 </complexType>
                             </element>
-                            <element name="ordinality">
+                            <element name="ordinality" minOccurs="1">
                                 <complexType>
+                                    <!-- Ordinality means mandatory-nes of fields -->
                                     <attribute name="mandatory" type="boolean" use="required"/>
                                 </complexType>
                             </element>
                         </sequence>
                     </complexType>
                 </element>
-                <element name="header" type="tns:fixed-fields" minOccurs="0">
+
+                <!-- Optional masks defines masking of fields during logging.  It can be referred to from the config via
+                its unique id -->
+                <element name="masks" minOccurs="0">
+                    <complexType>
+                        <sequence>
+                            <element name="mask" minOccurs="1" maxOccurs="unbounded">
+                                <complexType>
+                                    <attribute name="id" type="token" use="required"/>
+                                    <!-- An implementation of org.chiknrice.iso.Mask -->
+                                    <attribute name="class" type="token" use="required"/>
+                                </complexType>
+                            </element>
+                        </sequence>
+                    </complexType>
                 </element>
-                <element name="mti-encoding">
+
+                <!-- Optional ISO header  -->
+                <element name="header" type="tns:fixed-fields" minOccurs="0"/>
+
+                <!-- Encoding for MTI -->
+                <element name="mti-encoding" minOccurs="1">
                     <complexType>
                         <attribute name="type" type="tns:mti-encoding" use="required"/>
                     </complexType>
                 </element>
-                <element name="msg-bitmap">
+
+                <!-- Encoding of the ISO message bitmap.  Bitmaps of sub fields can be defined in var-fields -->
+                <element name="msg-bitmap" minOccurs="1">
                     <complexType>
                         <attribute name="type" type="tns:bitmap-type" use="required"/>
                     </complexType>
                 </element>
+
+                <!-- Message type definitions -->
                 <element name="message" type="tns:message" minOccurs="1" maxOccurs="unbounded"/>
+
+                <!-- Message extension definitions.  Message extensions serves to minimize redundant message definitions -->
                 <element name="message-ext" type="tns:message-extension" minOccurs="0" maxOccurs="unbounded"/>
             </sequence>
         </complexType>
     </element>
 
+    <!-- Defines a variable length composite field.  Composite contains at least 1 sub fields and variable length
+     composite fields can have optional sub fields -->
     <complexType name="var-fields">
         <complexContent>
             <extension base="tns:root-fields">
@@ -88,6 +129,7 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines the ISO message structure -->
     <complexType name="message">
         <complexContent>
             <extension base="tns:root-fields">
@@ -96,6 +138,7 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines the ISO message extension structure -->
     <complexType name="message-extension">
         <sequence>
             <element name="set" type="tns:root-fields" minOccurs="0"/>
@@ -105,9 +148,18 @@
         <attribute name="extends" type="int" use="required"/>
     </complexType>
 
+    <!-- Defines the remove section of a message extension, this only list indexes and composite indexes -->
     <complexType name="excludes">
         <choice minOccurs="1" maxOccurs="unbounded">
-            <element name="composite" type="tns:exclude-field"/>
+            <element name="composite">
+                <complexType>
+                    <complexContent>
+                        <extension base="tns:excludes">
+                            <attribute name="index" type="int" use="required"/>
+                        </extension>
+                    </complexContent>
+                </complexType>
+            </element>
             <element name="field">
                 <complexType>
                     <attribute name="index" type="int" use="required"/>
@@ -116,14 +168,10 @@
         </choice>
     </complexType>
 
-    <complexType name="exclude-field">
-        <complexContent>
-            <extension base="tns:excludes">
-                <attribute name="index" type="int" use="required"/>
-            </extension>
-        </complexContent>
-    </complexType>
-
+    <!-- Defines the structure of root fields.  Root fields is the structure for message level fields as well as the "set"
+    element for message extensions.  It is also the base type for variable length composite fields and exclude.  Sub field
+    types mostly have "-var" counterparts except for "date" which is always a fixed length field.  All fields under a
+    variable composite field can be non-mandatory which requires indexes to be specified -->
     <complexType name="root-fields">
         <choice minOccurs="1" maxOccurs="unbounded">
             <element name="alpha" type="tns:alpha-fixed-optional"/>
@@ -140,6 +188,8 @@
         </choice>
     </complexType>
 
+    <!-- Defines a fixed field that is used under a variable composite field since all fields under variable composite
+    are optional -->
     <complexType name="fixed-fields-optional">
         <complexContent>
             <extension base="tns:fixed-fields">
@@ -148,6 +198,9 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines the structure for composite field which has fixed length.  The sub fields doesn't include their "-var"
+    counterparts and all sub fields are mandatory so indexes are not needed to be specified.  The indexes of all sub fields
+     are sequential and starts with 1 (as oppose to message fields which has starts with 2 since bitmaps are field 1) -->
     <complexType name="fixed-fields">
         <choice minOccurs="1" maxOccurs="unbounded">
             <element name="alpha" type="tns:alpha-fixed"/>
@@ -159,11 +212,16 @@
         </choice>
     </complexType>
 
+    <!-- Defines text fields which are not really limited to alpha/numeric.  Characters under ISO 8859-1 are supported.
+     This type is abstract and is the base for all alpha fields -->
     <complexType name="alpha" abstract="true">
         <attribute name="length" type="int" use="required"/>
+        <!-- Defines trim rule when decoding a string.  Even variable length strings can have padding which would be
+        trimmed out if this is set to true -->
         <attribute name="trim" type="boolean" use="optional" default="true"/>
     </complexType>
 
+    <!-- Defines variable length text fields -->
     <complexType name="alpha-var">
         <complexContent>
             <extension base="tns:alpha">
@@ -173,14 +231,17 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines fixed length text fields -->
     <complexType name="alpha-fixed">
         <complexContent>
             <extension base="tns:alpha">
+                <!-- Allowed values are "LEFT" or "RIGHT" -->
                 <attribute name="justified" type="tns:justified-type" use="optional" default="LEFT"/>
             </extension>
         </complexContent>
     </complexType>
 
+    <!-- Defines fixed length text fields which are used under variable length composite fields -->
     <complexType name="alpha-fixed-optional">
         <complexContent>
             <extension base="tns:alpha-fixed">
@@ -189,11 +250,13 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines fixed length numeric fields -->
     <complexType name="numeric-fixed">
         <attribute name="length" type="int" use="required"/>
         <attribute name="encoding" type="tns:numeric-encoding" use="optional" default="CHAR"/>
     </complexType>
 
+    <!-- Defines fixed numeric fields which are used under variable length composite fields -->
     <complexType name="numeric-fixed-optional">
         <complexContent>
             <extension base="tns:numeric-fixed">
@@ -202,6 +265,7 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines variable length numeric fields -->
     <complexType name="numeric-var">
         <complexContent>
             <extension base="tns:numeric-fixed-optional">
@@ -210,12 +274,14 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines date fields.  Date fields are always fixed length -->
     <complexType name="date">
         <attribute name="format" type="token" use="required"/>
         <attribute name="timezone" type="token" use="optional" default="UTC"/>
         <attribute name="encoding" type="tns:date-encoding" use="optional" default="BCD"/>
     </complexType>
 
+    <!-- Defines date fields used under variable length composite fields -->
     <complexType name="date-optional">
         <complexContent>
             <extension base="tns:date">
@@ -224,10 +290,12 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines fixed length binary fields -->
     <complexType name="binary-fixed">
         <attribute name="length" type="int" use="required"/>
     </complexType>
 
+    <!-- Defines fixed length binary fields used under variable length composite fields -->
     <complexType name="binary-fixed-optional">
         <complexContent>
             <extension base="tns:binary-fixed">
@@ -236,6 +304,7 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines variable length binary fields-->
     <complexType name="binary-var">
         <complexContent>
             <extension base="tns:binary-fixed-optional">
@@ -244,6 +313,7 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines fixed length custom fields which specifies its codec (implementation of CustomCodec) -->
     <complexType name="custom-fixed">
         <sequence>
             <element name="param" minOccurs="0" maxOccurs="unbounded">
@@ -254,9 +324,10 @@
             </element>
         </sequence>
         <attribute name="length" type="int" use="required"/>
-        <attribute name="class" type="token" use="required"/>
+        <attribute name="codec" type="token" use="required"/>
     </complexType>
 
+    <!-- Defines fixed length custom fields used under variable length composite fields -->
     <complexType name="custom-fixed-optional">
         <complexContent>
             <extension base="tns:custom-fixed">
@@ -265,6 +336,7 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines variable length custom fields -->
     <complexType name="custom-var">
         <complexContent>
             <extension base="tns:custom-fixed-optional">
@@ -273,17 +345,20 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines attributes common to all optional members (fields used under variable length composite fields) -->
     <attributeGroup name="optional-member">
         <attribute name="index" type="int" use="required"/>
         <attribute name="mandatory" type="boolean" use="optional" default="false"/>
     </attributeGroup>
 
+    <!-- Defines attributes common to all variable length fields (as well as TLVs) -->
     <attributeGroup name="variable-length">
         <attribute name="tag-length" type="int" use="optional" default="2"/>
         <attribute name="tag-encoding" type="tns:numeric-encoding" use="optional" default="BCD"/>
         <attribute name="length-encoding" type="tns:numeric-encoding" use="optional" default="BCD"/>
     </attributeGroup>
 
+    <!-- Defines allowed encodings for numeric fields -->
     <simpleType name="numeric-encoding">
         <restriction base="token">
             <enumeration value="CHAR"></enumeration>
@@ -292,6 +367,7 @@
         </restriction>
     </simpleType>
 
+    <!-- Defines allowed encodings for date fields -->
     <simpleType name="date-encoding">
         <restriction base="token">
             <enumeration value="CHAR"></enumeration>
@@ -299,6 +375,7 @@
         </restriction>
     </simpleType>
 
+    <!-- Defines allowed encodings for mti -->
     <simpleType name="mti-encoding">
         <restriction base="token">
             <enumeration value="CHAR"></enumeration>
@@ -306,6 +383,7 @@
         </restriction>
     </simpleType>
 
+    <!-- Defines allowed types of bitmaps -->
     <simpleType name="bitmap-type">
         <restriction base="token">
             <enumeration value="BINARY"/>
@@ -314,12 +392,7 @@
         </restriction>
     </simpleType>
 
-    <simpleType name="padding-type">
-        <restriction base="token">
-            <pattern value="\d|(SPACE)"/>
-        </restriction>
-    </simpleType>
-
+    <!-- Defines allowed types of "justified" attribute of fixed length fields -->
     <simpleType name="justified-type">
         <restriction base="token">
             <enumeration value="LEFT"/>
