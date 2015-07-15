@@ -16,7 +16,8 @@
 package org.chiknrice.iso;
 
 /**
- * A runtime exception signifying error during encoding/decoding.
+ * A runtime exception signifying error during building of codec configuration.  Constraints that cannot be applied via
+ * xml config are implemented via ConfigException (e.g. definition of multiple messages with the same MTI)
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
