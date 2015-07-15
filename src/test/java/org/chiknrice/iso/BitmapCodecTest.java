@@ -61,12 +61,52 @@ public class BitmapCodecTest {
     }
 
     @Test
+    public void testEncodeBinaryExtended() {
+        BitmapCodec codec = new BitmapCodec(Type.BINARY);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new TreeSet<>();
+        enabledBits.add(2);
+        enabledBits.add(3);
+        enabledBits.add(5);
+        enabledBits.add(8);
+        enabledBits.add(13);
+        enabledBits.add(21);
+        enabledBits.add(66);
+
+        assertEquals(0, buf.position());
+        codec.encode(buf, enabledBits);
+        assertEquals(16, buf.position());
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
+        }
+        String expected = "11101001000010000000100000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000";
+        assertEquals(expected, sb.toString());
+    }
+
+    @Test
     public void testNonTreeSet() {
         BitmapCodec codec = new BitmapCodec(Type.BINARY);
         ByteBuffer buf = ByteBuffer.allocate(20);
         Set<Integer> enabledBits = new HashSet<>();
         enabledBits.add(2);
+        assertEquals(0, buf.position());
         codec.encode(buf, enabledBits);
+        assertEquals(8, buf.position());
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
+        }
+        String expected = "0100000000000000000000000000000000000000000000000000000000000000";
+        assertEquals(expected, sb.toString());
     }
 
     @Test
@@ -135,6 +175,57 @@ public class BitmapCodecTest {
         enabledBits.add(8);
         enabledBits.add(13);
         enabledBits.add(16);
+
+        assertEquals(0, buf.position());
+        codec.encode(buf, enabledBits);
+        assertEquals(2, buf.position());
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
+        }
+        String expected = "0001000100001001";
+        assertEquals(expected, sb.toString());
+    }
+
+    @Test
+    public void testEncodeCompressedSecondary() {
+        BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new TreeSet<>();
+        enabledBits.add(4);
+        enabledBits.add(8);
+        enabledBits.add(13);
+        enabledBits.add(16);
+        enabledBits.add(21);
+
+        assertEquals(0, buf.position());
+        codec.encode(buf, enabledBits);
+        assertEquals(3, buf.position());
+
+        byte[] encoded = buf.array();
+
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < buf.position(); i++) {
+            sb.append(String.format("%08d", Integer.parseInt(Integer.toBinaryString(encoded[i] & 0xFF))));
+        }
+        String expected = "100100010000100100001000";
+        assertEquals(expected, sb.toString());
+    }
+
+    @Test
+    public void testEncodeCompressedFourthExtension() {
+        BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        Set<Integer> enabledBits = new TreeSet<>();
+        enabledBits.add(4);
+        enabledBits.add(8);
+        enabledBits.add(13);
+        enabledBits.add(16);
         enabledBits.add(21);
         enabledBits.add(27);
         enabledBits.add(36);
@@ -155,7 +246,7 @@ public class BitmapCodecTest {
     }
 
     @Test(expected = CodecException.class)
-    public void testMidExtensionBitSet() {
+    public void testCompressedMidExtensionBitSet() {
         BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
         ByteBuffer buf = ByteBuffer.allocate(20);
         Set<Integer> enabledBits = new TreeSet<>();
@@ -165,7 +256,7 @@ public class BitmapCodecTest {
     }
 
     @Test(expected = CodecException.class)
-    public void testLastExtensionBitSet() {
+    public void testCompressedLastExtensionBitSet() {
         BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
         ByteBuffer buf = ByteBuffer.allocate(20);
         Set<Integer> enabledBits = new TreeSet<>();
@@ -202,7 +293,7 @@ public class BitmapCodecTest {
     }
 
     @Test
-    public void testDecodeExtendedBinary() {
+    public void testDecodeBinaryExtended() {
         // 16 bytes for primary + secondary bitmap
         byte[] bytes = new byte[16];
         bytes[0] = (byte) Integer.parseInt("11101001", 2);
@@ -369,6 +460,166 @@ public class BitmapCodecTest {
                     assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
             }
         }
+    }
+
+    @Test
+    public void testDecodeCompressed() {
+        // 8 bytes for primary bitmap
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) Integer.parseInt("01101001", 2);
+        bytes[1] = (byte) Integer.parseInt("00001000", 2);
+
+        BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
+        Bitmap bitmap = codec.decode(buf);
+        assertEquals(2, buf.position());
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testDecodeCompressedSecondary() {
+        // 8 bytes for primary bitmap
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) Integer.parseInt("11101001", 2);
+        bytes[1] = (byte) Integer.parseInt("00001000", 2);
+        bytes[2] = (byte) Integer.parseInt("00001000", 2);
+
+        BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
+        Bitmap bitmap = codec.decode(buf);
+        assertEquals(3, buf.position());
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 1: // extension bit
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 21:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testDecodeCompressedFourthExtension() {
+        // 8 bytes for primary bitmap
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) Integer.parseInt("11101001", 2);
+        bytes[1] = (byte) Integer.parseInt("00001000", 2);
+        bytes[2] = (byte) Integer.parseInt("10001000", 2);
+        bytes[3] = (byte) Integer.parseInt("10000010", 2);
+        bytes[4] = (byte) Integer.parseInt("00100000", 2);
+
+        BitmapCodec codec = new BitmapCodec(Type.COMPRESSED);
+        ByteBuffer buf = ByteBuffer.wrap(bytes);
+        Bitmap bitmap = codec.decode(buf);
+        assertEquals(5, buf.position());
+
+        for (int i = 1; i <= 128; i++) {
+            switch (i) {
+                case 1: // extension bit
+                case 2:
+                case 3:
+                case 5:
+                case 8:
+                case 13:
+                case 17: // extension bit
+                case 21:
+                case 25: // extension bit
+                case 31:
+                case 35:
+                    assertTrue(String.format("Expected set bit %d unset", i), bitmap.isSet(i));
+                    break;
+                default:
+                    assertTrue(String.format("Unexpected bit set %d", i), !bitmap.isSet(i));
+            }
+        }
+    }
+
+    @Test
+    public void testBitmapEqualsAndHashCode() {
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) Integer.parseInt("01101001", 2);
+        bytes[1] = (byte) Integer.parseInt("00001000", 2);
+        bytes[2] = (byte) Integer.parseInt("00001000", 2);
+
+        BitmapCodec codec = new BitmapCodec(Type.BINARY);
+        Bitmap bitmap1 = codec.decode(ByteBuffer.wrap(bytes));
+        Bitmap bitmap2 = codec.decode(ByteBuffer.wrap(bytes));
+
+        bytes[2] = 0x00;
+        Bitmap bitmap3 = codec.decode(ByteBuffer.wrap(bytes));
+
+        assertTrue(!bitmap1.equals(null));
+        assertTrue(!bitmap1.equals("a"));
+        assertTrue(bitmap1.equals(bitmap1));
+        assertTrue(bitmap1.equals(bitmap2));
+        assertTrue(!bitmap1.equals(bitmap3));
+        assertEquals(bitmap1.hashCode(), bitmap2.hashCode());
+        assertNotEquals(bitmap1.hashCode(), bitmap3.hashCode());
+    }
+
+    @Test
+    public void testBitmapToString() {
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) Integer.parseInt("01101001", 2);
+        bytes[1] = (byte) Integer.parseInt("00001000", 2);
+        bytes[2] = (byte) Integer.parseInt("00001000", 2);
+
+        BitmapCodec codec = new BitmapCodec(Type.BINARY);
+        Bitmap bitmap = codec.decode(ByteBuffer.wrap(bytes));
+
+        String expected = "[2, 3, 5, 8, 13, 21]";
+
+        assertEquals(expected, bitmap.toString());
+    }
+
+    @Test
+    public void testBitmapSetBitUnsetBit() {
+        byte[] bytes = new byte[16];
+        bytes[0] = (byte) Integer.parseInt("11000000", 2);
+        bytes[8] = (byte) Integer.parseInt("01000000", 2);
+
+        BitmapCodec codec = new BitmapCodec(Type.BINARY);
+        Bitmap bitmap = codec.decode(ByteBuffer.wrap(bytes));
+
+        assertTrue(bitmap.isSet(2));
+        assertTrue(bitmap.isSet(66));
+        assertTrue(!bitmap.isSet(3));
+        assertTrue(!bitmap.isSet(67));
+
+        bitmap.set(3);
+        bitmap.set(67);
+        assertTrue(bitmap.isSet(2));
+        assertTrue(bitmap.isSet(66));
+        assertTrue(bitmap.isSet(3));
+        assertTrue(bitmap.isSet(67));
+
+        bitmap.unSet(2);
+        bitmap.unSet(66);
+        assertTrue(!bitmap.isSet(2));
+        assertTrue(!bitmap.isSet(66));
+        assertTrue(bitmap.isSet(3));
+        assertTrue(bitmap.isSet(67));
     }
 
     @Test(expected = ConfigException.class)

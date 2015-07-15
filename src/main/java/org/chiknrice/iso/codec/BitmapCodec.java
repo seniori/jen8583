@@ -24,6 +24,7 @@ import org.chiknrice.iso.util.Hex;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -179,7 +180,7 @@ public class BitmapCodec {
         }
 
         public void unSet(int bit) {
-            bytes[byteIndex(bit)] = (byte) (bytes[byteIndex(bit)] | (mask(bit) ^ 0xFF));
+            bytes[byteIndex(bit)] = (byte) (bytes[byteIndex(bit)] & (mask(bit) ^ 0xFF));
         }
 
         @Override
@@ -196,7 +197,7 @@ public class BitmapCodec {
 
         @Override
         public int hashCode() {
-            return Hash.build(this, bytes);
+            return Arrays.hashCode(bytes);
         }
 
         @Override
@@ -209,7 +210,7 @@ public class BitmapCodec {
                 return false;
             } else {
                 Bitmap other = (Bitmap) o;
-                return EqualsBuilder.newInstance(other.bytes, bytes).isEqual();
+                return Arrays.equals(other.bytes, bytes);
             }
         }
     }
