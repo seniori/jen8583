@@ -94,7 +94,7 @@ public class IsoMessage {
     }
 
     /**
-     * Returns the header component located at the index. Indexes start with 2 as field 1 in ISO8583 is the bitmap.
+     * Returns the message component located at the index. Indexes start with 2 as field 1 in ISO8583 is the bitmap.
      *
      * @param index the index of the field
      * @return the value or null if the field doesn't exist.
@@ -104,7 +104,7 @@ public class IsoMessage {
     }
 
     /**
-     * Returns the field component located at the position expressed by recursiveExpression.
+     * Returns the component located at the position expressed by recursiveExpression.
      *
      * @param recursiveExpression
      * @return the value or null if the field doesn't exist.
