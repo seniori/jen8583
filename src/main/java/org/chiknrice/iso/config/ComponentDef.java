@@ -60,7 +60,7 @@ public class ComponentDef {
         return mandatory;
     }
 
-    public static enum Encoding {
+    public enum Encoding {
         CHAR, BCD, BINARY
     }
 

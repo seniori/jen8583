@@ -72,8 +72,7 @@ public class IsoMessageTest {
         m.setField(1, f1);
         Map<Integer, Object> f12 = new TreeMap<>();
         f1.put(2, f12);
-        Map<Integer, Object> f123 = new TreeMap<>();
-        f12.put(3, f123);
+        f12.put(3, "a");
 
         Map<Integer, Object> returned = m.getField("1.3.5");
         assertThat(returned, nullValue());

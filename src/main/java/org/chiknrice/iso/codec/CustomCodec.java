@@ -20,8 +20,8 @@ package org.chiknrice.iso.codec;
  */
 public interface CustomCodec {
 
-    public Object decode(byte[] bytes);
+    Object decode(byte[] bytes);
 
-    public byte[] encode(Object value);
+    byte[] encode(Object value);
 
 }

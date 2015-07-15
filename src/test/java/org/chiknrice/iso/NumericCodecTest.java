@@ -206,7 +206,7 @@ public class NumericCodecTest {
         assertEquals(Long.MAX_VALUE, decoded);
 
         bytes = new byte[]{(byte) 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        decoded = codec.decode(ByteBuffer.wrap(bytes));
+        codec.decode(ByteBuffer.wrap(bytes));
     }
 
     @Test

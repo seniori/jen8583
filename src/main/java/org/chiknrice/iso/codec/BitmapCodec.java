@@ -16,7 +16,6 @@
 package org.chiknrice.iso.codec;
 
 import org.chiknrice.iso.CodecException;
-import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
@@ -36,11 +35,7 @@ public class BitmapCodec {
     private final Type type;
 
     public BitmapCodec(Type type) {
-        if (type == null) {
-            throw new ConfigException(String.format("Unsupported encoding %s", type));
-        } else {
-            this.type = type;
-        }
+        this.type = type;
     }
 
     /**
@@ -72,7 +67,7 @@ public class BitmapCodec {
             buf.mark();
             int total = 0;
             bytes = new byte[2];
-            boolean hasNext = false;
+            boolean hasNext;
             do {
                 buf.get(bytes);
                 total += bytes.length;
@@ -156,8 +151,8 @@ public class BitmapCodec {
 
     public static class Bitmap {
 
-        public static enum Type {
-            BINARY, HEX, COMPRESSED;
+        public enum Type {
+            BINARY, HEX, COMPRESSED
         }
 
         private final byte[] bytes;

@@ -46,7 +46,7 @@ public class StructDataCodec implements CustomCodec, Configurable {
         Segment segment = Segment.KEY_LENGTH_IND;
         int lengthToRead = 1;
         char[] buff = new char[512];
-        int lengthRead = -1;
+        int lengthRead;
 
         String key = null;
         String val = null;

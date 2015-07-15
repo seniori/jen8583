@@ -42,7 +42,6 @@ public class EqualsBuilder {
     }
 
     public boolean isEqual() {
-        boolean equal = true;
         for (int i = 0; i < left.size(); i++) {
             Object left = this.left.get(i);
             Object right = this.right.get(i);
@@ -50,7 +49,7 @@ public class EqualsBuilder {
                 return false;
             }
         }
-        return equal;
+        return true;
     }
 
     private boolean eq(Object x, Object y) {

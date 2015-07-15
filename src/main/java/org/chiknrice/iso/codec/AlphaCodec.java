@@ -58,16 +58,15 @@ public final class AlphaCodec implements Codec<String> {
     }
 
     public void encode(ByteBuffer buf, String value) {
-        String stringValue = value.toString();
         if (fixedLength != null) {
-            if (stringValue.length() > fixedLength) {
-                throw new CodecException(String.format("Value length of %s greater than allowed length %d",
-                        stringValue, fixedLength));
+            if (value.length() > fixedLength) {
+                throw new CodecException(String
+                        .format("Value length of %s greater than allowed length %d", value, fixedLength));
             } else {
-                stringValue = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", stringValue);
+                value = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", value);
             }
         }
-        buf.put(stringValue.getBytes(StandardCharsets.ISO_8859_1));
+        buf.put(value.getBytes(StandardCharsets.ISO_8859_1));
     }
 
     @Override

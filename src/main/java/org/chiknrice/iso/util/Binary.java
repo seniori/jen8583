@@ -83,7 +83,8 @@ public class Binary {
             buf.put(bytes, 0, bytes.length - maxBytes);
             buf.clear();
             if (((size == 8) ? buf.getLong() : buf.getInt()) > 0) {
-                throw new CodecException(String.format("%d trimmed on encoding to %d bytes", value, maxBytes));
+                throw new CodecException(String
+                        .format("%s trimmed on encoding to %d bytes", value.toString(), maxBytes));
             }
 
             // use trimmed

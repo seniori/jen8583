@@ -227,7 +227,7 @@ public class IsoMessage {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof IsoMessage) {
             IsoMessage other = (IsoMessage) obj;
-            if (header.equals(other.header) && mti == other.mti && fields.equals(other.fields)) {
+            if (header.equals(other.header) && mti.equals(other.mti) && fields.equals(other.fields)) {
                 return true;
             }
         }

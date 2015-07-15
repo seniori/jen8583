@@ -38,7 +38,7 @@ public interface Codec<T> {
      * @param buf
      * @return the decoded value
      */
-    public T decode(ByteBuffer buf);
+    T decode(ByteBuffer buf);
 
     /**
      * The implementation should define how the value T should be encoded to the ByteBuffer provided. The ByteBuffer
@@ -47,13 +47,13 @@ public interface Codec<T> {
      * @param buf
      * @param value the value to be encoded
      */
-    public void encode(ByteBuffer buf, T value);
+    void encode(ByteBuffer buf, T value);
 
     /**
      * Defines how the value should be encoded/decoded.
      *
      * @return the encoding defined for the value.
      */
-    public Encoding getEncoding();
+    Encoding getEncoding();
 
 }

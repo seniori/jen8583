@@ -55,9 +55,6 @@ public class Bcd {
             }
 
             bytes[bytePos] = (byte) (bytes[bytePos] | ((c - 48) << (hi ? 4 : 0)));
-            if (hi) {
-                bytePos--;
-            }
         }
         return bytes;
     }

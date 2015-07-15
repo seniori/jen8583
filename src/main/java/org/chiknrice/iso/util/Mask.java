@@ -24,6 +24,6 @@ package org.chiknrice.iso.util;
  */
 public interface Mask {
 
-    public String apply(Object o);
+    String apply(Object o);
 
 }

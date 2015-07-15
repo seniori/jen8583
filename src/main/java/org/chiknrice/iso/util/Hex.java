@@ -60,9 +60,6 @@ public class Hex {
                 }
 
                 bytes[bytePos] |= (HEX.indexOf(c) << (hi ? 4 : 0));
-                if (hi) {
-                    bytePos--;
-                }
             }
             return bytes;
         }

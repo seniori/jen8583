@@ -65,7 +65,7 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
             if (def.getCodec() instanceof TagVarCodec) {
                 // nothing to do with a tag yet
                 Integer tag = ((TagVarCodec<?>) def.getCodec()).getTagCodec().decode(buf).intValue();
-                if (tag != index) {
+                if (!index.equals(tag)) {
                     throw new CodecException(String.format("Unexpected TLV tag %d", tag));
                 }
             }

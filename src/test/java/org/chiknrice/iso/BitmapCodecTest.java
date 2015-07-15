@@ -622,11 +622,6 @@ public class BitmapCodecTest {
         assertTrue(bitmap.isSet(67));
     }
 
-    @Test(expected = ConfigException.class)
-    public void testNullEncoding() {
-        new BitmapCodec(null);
-    }
-
     @Test
     public void testEqualsAndHashCode() {
         BitmapCodec codec1 = new BitmapCodec(Type.BINARY);
