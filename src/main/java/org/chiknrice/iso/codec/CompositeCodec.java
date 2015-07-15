@@ -53,7 +53,8 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
     }
 
     public Map<Integer, Object> decode(ByteBuffer buf) {
-        Bitmap bitmap = decodeBitmap(buf);
+        Bitmap bitmap = bitmapCodec != null ? bitmapCodec.decode(buf) : null;
+
         Map<Integer, Object> values = new TreeMap<>();
         for (Entry<Integer, ComponentDef> defEntry : getSubComponentDefs().entrySet()) {
             Integer index = defEntry.getKey();
@@ -105,13 +106,11 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
         return values;
     }
 
-    protected Bitmap decodeBitmap(ByteBuffer buf) {
-        return getBitmapCodec() != null ? getBitmapCodec().decode(buf) : null;
-    }
-
     @SuppressWarnings("unchecked")
     public void encode(ByteBuffer buf, Map<Integer, Object> values) {
-        encodeBitmap(buf, values);
+        if (bitmapCodec != null) {
+            bitmapCodec.encode(buf, values.keySet());
+        }
         Map<Integer, Object> tempMap = new HashMap<>(values);
         for (Entry<Integer, ComponentDef> defEntry : subComponentDefs.entrySet()) {
             Integer index = defEntry.getKey();
@@ -166,12 +165,6 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
 
         if (tempMap.size() > 0) {
             throw new CodecException(format("Unexpected components %s", tempMap));
-        }
-    }
-
-    protected void encodeBitmap(ByteBuffer buf, Map<Integer, Object> values) {
-        if (getBitmapCodec() != null) {
-            getBitmapCodec().encode(buf, values.keySet());
         }
     }
 
