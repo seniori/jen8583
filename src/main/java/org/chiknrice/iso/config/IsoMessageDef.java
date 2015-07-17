@@ -49,17 +49,17 @@ public final class IsoMessageDef {
 
     private static final Logger LOG = LoggerFactory.getLogger(IsoMessageDef.class);
 
-    private final ComponentDef headerCodec;
+    private final CompositeDef headerCodec;
     private final NumericCodec mtiCodec;
-    private final Map<Integer, ComponentDef> fieldsCodec;
+    private final Map<Integer, CompositeDef> fieldsCodec;
 
-    public IsoMessageDef(ComponentDef headerDef, NumericCodec mtiCodec, Map<Integer, ComponentDef> fieldsDef) {
+    private IsoMessageDef(CompositeDef headerDef, NumericCodec mtiCodec, Map<Integer, CompositeDef> fieldsDef) {
         this.headerCodec = headerDef;
         this.mtiCodec = mtiCodec;
-        this.fieldsCodec = fieldsDef;
+        this.fieldsCodec = Collections.unmodifiableMap(fieldsDef);
     }
 
-    public ComponentDef getHeaderDef() {
+    public CompositeDef getHeaderDef() {
         return headerCodec;
     }
 
@@ -67,7 +67,7 @@ public final class IsoMessageDef {
         return mtiCodec;
     }
 
-    public Map<Integer, ComponentDef> getFieldsDef() {
+    public Map<Integer, CompositeDef> getFieldsDef() {
         return fieldsCodec;
     }
 
@@ -209,17 +209,17 @@ public final class IsoMessageDef {
             NumericCodec mtiCodec = new NumericCodec(mtiEncoding, 4);
             LOG.info("MTI encoding: {}", mtiEncoding);
 
-            ComponentDef headerDef = null;
+            CompositeDef headerDef = null;
             SortedMap<Integer, ComponentDef> headerComponents = buildHeader();
             if (headerComponents != null) {
-                headerDef = new ComponentDef(new CompositeCodec(headerComponents), true);
+                headerDef = new CompositeDef(headerComponents);
             }
 
             Bitmap.Type msgBitmapType = Bitmap.Type
                     .valueOf(((Element) doc.getElementsByTagName(TAG_MSG_BITMAP).item(0)).getAttribute(ATTR_TYPE));
             LOG.info("Bitmap type: {}", msgBitmapType);
             BitmapCodec msgBitmapCodec = new BitmapCodec(msgBitmapType);
-            Map<Integer, ComponentDef> fieldsDef = buildFieldsDefs(msgBitmapCodec);
+            Map<Integer, CompositeDef> fieldsDef = buildFieldsDefs(msgBitmapCodec);
 
             buildFieldsDefsExtension(fieldsDef);
 
@@ -238,9 +238,9 @@ public final class IsoMessageDef {
          * @param bitmapCodec
          * @return
          */
-        private Map<Integer, ComponentDef> buildFieldsDefs(BitmapCodec bitmapCodec) {
+        private Map<Integer, CompositeDef> buildFieldsDefs(BitmapCodec bitmapCodec) {
             NodeList messageList = doc.getElementsByTagName(TAG_MESSAGE);
-            Map<Integer, ComponentDef> defs = new TreeMap<>();
+            Map<Integer, CompositeDef> defs = new TreeMap<>();
 
             for (int i = 0; i < messageList.getLength(); i++) {
                 Element messageDef = (Element) messageList.item(i);
@@ -248,7 +248,7 @@ public final class IsoMessageDef {
                 if (defs.containsKey(mti)) {
                     throw new ConfigException(format("Duplicate message config for mti %d", mti));
                 }
-                defs.put(mti, new ComponentDef(new CompositeCodec(buildVarComponents(messageDef), bitmapCodec), true));
+                defs.put(mti, new CompositeDef(buildVarComponents(messageDef), bitmapCodec));
             }
             return defs;
         }
@@ -298,56 +298,66 @@ public final class IsoMessageDef {
          * @return
          */
         private ComponentDef buildComponent(Element e, boolean mandatory) {
-            Codec<?> codec;
+            SortedMap<Integer, ComponentDef> subComponentDefs = null;
+            BitmapCodec bitmapCodec = null;
+            Codec<Number> tagCodec = null;
+            Codec<Number> lengthCodec = null;
+            Codec<?> valueCodec = null;
             switch (e.getTagName()) {
                 case TAG_COMPOSITE_VAR:
                     Bitmap.Type bitmapType = getBitmapType(e);
-                    BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
-                    CompositeCodec compositeCodec = new CompositeCodec(buildVarComponents(e), bitmapCodec);
+                    bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
+                    subComponentDefs = buildVarComponents(e);
                     Integer tagDigits = getInteger(e, ATTR_TAG_LENGTH);
 
-                    NumericCodec lengthCodec = buildVarLengthCodec(e);
+                    lengthCodec = buildVarLengthCodec(e);
                     if (tagDigits != null) {
-                        codec = new TagVarCodec<>(compositeCodec, lengthCodec, new NumericCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTagEncoding), tagDigits));
-                    } else {
-                        codec = new VarCodec<>(compositeCodec, lengthCodec);
+                        tagCodec = new NumericCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTagEncoding), tagDigits);
                     }
                     break;
                 case TAG_COMPOSITE:
-                    codec = new CompositeCodec(buildFixedComponents(e));
+                    subComponentDefs = buildFixedComponents(e);
                     break;
                 case TAG_ALPHA:
-                    codec = new AlphaCodec(getTrim(e), getLeftJustified(e), Integer
+                    valueCodec = new AlphaCodec(getTrim(e), getLeftJustified(e), Integer
                             .valueOf(e.getAttribute(ATTR_LENGTH)));
                     break;
                 case TAG_ALPHA_VAR:
-                    codec = new VarCodec<>(new AlphaCodec(getTrim(e)), buildVarLengthCodec(e));
+                    lengthCodec = buildVarLengthCodec(e);
+                    valueCodec = new AlphaCodec(getTrim(e));
                     break;
                 case TAG_NUMERIC:
-                    codec = new NumericCodec(getEncoding(e, ATTR_ENCODING, defaultNumericEncoding), Integer
+                    valueCodec = new NumericCodec(getEncoding(e, ATTR_ENCODING, defaultNumericEncoding), Integer
                             .valueOf(e.getAttribute(ATTR_LENGTH)));
                     break;
                 case TAG_NUMERIC_VAR:
-                    codec = new VarCodec<>(new NumericCodec(getEncoding(e, ATTR_ENCODING, defaultNumericEncoding)), buildVarLengthCodec(e));
+                    lengthCodec = buildVarLengthCodec(e);
+                    valueCodec = new NumericCodec(getEncoding(e, ATTR_ENCODING, defaultNumericEncoding));
                     break;
                 case TAG_DATE:
-                    codec = new DateTimeCodec(e
+                    valueCodec = new DateTimeCodec(e
                             .getAttribute(ATTR_FORMAT), getTimeZone(e), getEncoding(e, ATTR_ENCODING, defaultDateEncoding));
                     break;
                 case TAG_BINARY:
-                    codec = new BinaryCodec(Integer.valueOf(e.getAttribute(ATTR_LENGTH)));
+                    valueCodec = new BinaryCodec(Integer.valueOf(e.getAttribute(ATTR_LENGTH)));
                     break;
                 case TAG_BINARY_VAR:
-                    codec = new VarCodec<>(new BinaryCodec(), buildVarLengthCodec(e));
+                    lengthCodec = buildVarLengthCodec(e);
+                    valueCodec = new BinaryCodec();
                     break;
-                case TAG_CUSTOM:
                 case TAG_CUSTOM_VAR:
-                    codec = buildCustomCodec(e);
+                    lengthCodec = buildVarLengthCodec(e);
+                case TAG_CUSTOM:
+                    valueCodec = buildCustomCodec(e);
                     break;
                 default:
                     throw new ConfigException("Unexepcted tag: " + e.getTagName());
             }
-            return new ComponentDef(codec, mandatory);
+            if (subComponentDefs != null) {
+                return new CompositeDef(subComponentDefs, bitmapCodec, tagCodec, lengthCodec, mandatory);
+            } else {
+                return new ComponentDef(tagCodec, lengthCodec, valueCodec, mandatory);
+            }
         }
 
         private Codec<?> buildCustomCodec(Element e) {
@@ -367,12 +377,7 @@ public final class IsoMessageDef {
                         ((Configurable) customCodec).configure(params);
                     }
 
-                    if (TAG_CUSTOM_VAR.equals(e.getTagName())) {
-                        return new VarCodec<>(new CustomCodecAdapter(customCodec), buildVarLengthCodec(e));
-                    } else {
-                        Integer length = Integer.valueOf(e.getAttribute(ATTR_LENGTH));
-                        return new CustomCodecAdapter(customCodec, length);
-                    }
+                    return new CustomCodecAdapter(customCodec, getInteger(e, ATTR_LENGTH));
                 } else {
                     throw new ConfigException(format("Invalid custom class %s", classAttr));
                 }
@@ -437,9 +442,9 @@ public final class IsoMessageDef {
             return subElements;
         }
 
-        private void buildFieldsDefsExtension(Map<Integer, ComponentDef> existingCodecs) {
+        private void buildFieldsDefsExtension(Map<Integer, CompositeDef> existingCodecs) {
             NodeList messageExtList = doc.getElementsByTagName(TAG_MESSAGE_EXT);
-            Map<Integer, ComponentDef> extensions = new TreeMap<>();
+            Map<Integer, CompositeDef> extensions = new TreeMap<>();
             for (int i = 0; i < messageExtList.getLength(); i++) {
                 Element messageDef = (Element) messageExtList.item(i);
                 Integer mtiExisting = getInteger(messageDef, ATTR_EXTENDS);
@@ -448,12 +453,12 @@ public final class IsoMessageDef {
                     throw new ConfigException(format("Duplicate message config for mti %d", mti));
                 }
 
-                ComponentDef existing = existingCodecs.get(mtiExisting);
+                CompositeDef existing = existingCodecs.get(mtiExisting);
                 if (existing == null) {
                     throw new ConfigException(format("Error extending mti %d, no config available", mti));
                 }
-                CompositeCodec existingCompositeCodec = (CompositeCodec) existing.getCodec();
-                SortedMap<Integer, ComponentDef> clonedFieldsDef = clone(existingCompositeCodec.getSubComponentDefs());
+                SortedMap<Integer, ComponentDef> existingSubComponentDefs = existing.getSubComponentDefs();
+                SortedMap<Integer, ComponentDef> clonedFieldsDef = clone(existingSubComponentDefs);
 
                 Element setElement = null;
                 Element removeElement = null;
@@ -479,8 +484,8 @@ public final class IsoMessageDef {
                     removeFields(clonedFieldsDef, getSubElements(removeElement));
                 }
 
-                extensions.put(mti, new ComponentDef(new CompositeCodec(clonedFieldsDef, existingCompositeCodec
-                        .getBitmapCodec()), true));
+                BitmapCodec existingBitmapCodec = existing.getBitmapCodec();
+                extensions.put(mti, new CompositeDef(clonedFieldsDef, existingBitmapCodec));
 
             }
             existingCodecs.putAll(extensions);
@@ -496,12 +501,11 @@ public final class IsoMessageDef {
                         }
                         break;
                     case TAG_COMPOSITE:
-                        Codec<?> codec = componentDefs.get(index).getCodec();
-                        if (codec instanceof VarCodec) {
-                            codec = ((VarCodec<?>) codec).getCodec();
-                        }
-                        if (codec instanceof CompositeCodec) {
-                            removeFields(((CompositeCodec) codec).getSubComponentDefs(), getSubElements(e));
+                        ComponentDef def = componentDefs.get(index);
+                        if (def instanceof CompositeDef) {
+                            SortedMap<Integer, ComponentDef> subComponentDefs = ((CompositeDef) def)
+                                    .getSubComponentDefs();
+                            removeFields(subComponentDefs, getSubElements(e));
                             break;
                         }
                         throw new ConfigException(format("Expected composite field %d not found", index));
@@ -527,18 +531,13 @@ public final class IsoMessageDef {
 
                     ComponentDef existingDef = components.get(index);
                     if (existingDef != null) {
+                        existingTagCodec = existingDef.getTagCodec();
+                        existingLengthCodec = existingDef.getLengthCodec();
                         existingMandatory = existingDef.isMandatory();
-                        Codec<?> codec = existingDef.getCodec();
-                        if (codec instanceof TagVarCodec) {
-                            existingTagCodec = ((TagVarCodec<?>) codec).getTagCodec();
-                        }
-                        if (codec instanceof VarCodec) {
-                            existingLengthCodec = ((VarCodec<?>) codec).getLengthCodec();
-                            codec = ((VarCodec<?>) codec).getCodec();
-                        }
-                        if (codec instanceof CompositeCodec) {
-                            existingBitmapCodec = ((CompositeCodec) codec).getBitmapCodec();
-                            existingSubComponentDefs = ((CompositeCodec) codec).getSubComponentDefs();
+
+                        if (existingDef instanceof CompositeDef) {
+                            existingBitmapCodec = ((CompositeDef) existingDef).getBitmapCodec();
+                            existingSubComponentDefs = ((CompositeDef) existingDef).getSubComponentDefs();
                         }
                     }
 
@@ -558,14 +557,8 @@ public final class IsoMessageDef {
                             .append(existingLengthCodec, newLengthCodec).append(existingBitmapCodec, newBitmapCodec)
                             .append(existingMandatory, newMandatory).isEqual()) {
                         setVarFields(existingSubComponentDefs, getSubElements(e));
-                        CompositeCodec compositeCodec = new CompositeCodec(existingSubComponentDefs, newBitmapCodec);
-                        Codec<?> codec;
-                        if (newTagCodec != null) {
-                            codec = new TagVarCodec<>(compositeCodec, newLengthCodec, newTagCodec);
-                        } else {
-                            codec = new VarCodec<>(compositeCodec, newLengthCodec);
-                        }
-                        newDef = new ComponentDef(codec, newMandatory);
+
+                        newDef = new CompositeDef(existingSubComponentDefs, newBitmapCodec, newTagCodec, newLengthCodec, newMandatory);
                     }
                 }
 
@@ -581,41 +574,16 @@ public final class IsoMessageDef {
             for (Entry<Integer, ComponentDef> defEntry : existingDefs.entrySet()) {
                 Integer index = defEntry.getKey();
                 ComponentDef def = defEntry.getValue();
-                Codec<?> codec = def.getCodec();
-                if (codec instanceof TagVarCodec) {
-                    codec = cloneTagVarCodec((TagVarCodec<?>) codec);
-                } else if (codec instanceof VarCodec) {
-                    codec = cloneVarCodec((VarCodec<?>) codec);
-                } else if (codec instanceof CompositeCodec) {
-                    codec = cloneComposite((CompositeCodec) codec);
+                if (def instanceof CompositeDef) {
+                    clone.put(index, new CompositeDef(clone(((CompositeDef) def)
+                            .getSubComponentDefs()), ((CompositeDef) def).getBitmapCodec(), def.getTagCodec(), def
+                            .getLengthCodec(), def.isMandatory()));
+                } else {
+                    clone.put(index, new ComponentDef(def.getTagCodec(), def.getLengthCodec(), def.getValueCodec(), def
+                            .isMandatory()));
                 }
-                clone.put(index, new ComponentDef(codec, def.isMandatory()));
             }
             return clone;
-
-        }
-
-        private TagVarCodec<?> cloneTagVarCodec(TagVarCodec<?> tagVarCodec) {
-            if (tagVarCodec.getCodec() instanceof CompositeCodec) {
-                CompositeCodec compositeCodec = cloneComposite((CompositeCodec) tagVarCodec.getCodec());
-                return new TagVarCodec<>(compositeCodec, tagVarCodec.getLengthCodec(), tagVarCodec.getTagCodec());
-            } else {
-                return tagVarCodec;
-            }
-        }
-
-        private VarCodec<?> cloneVarCodec(VarCodec<?> varCodec) {
-            if (varCodec.getCodec() instanceof CompositeCodec) {
-                CompositeCodec compositeCodec = cloneComposite((CompositeCodec) varCodec.getCodec());
-                return new VarCodec<>(compositeCodec, varCodec.getLengthCodec());
-            } else {
-                return varCodec;
-            }
-        }
-
-        private CompositeCodec cloneComposite(CompositeCodec composite) {
-            SortedMap<Integer, ComponentDef> clone = clone(composite.getSubComponentDefs());
-            return new CompositeCodec(clone, composite.getBitmapCodec());
         }
 
     }

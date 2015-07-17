@@ -13,9 +13,9 @@
  * <http://www.gnu.org/licenses/>.
  *
  */
-package org.chiknrice.iso;
+package org.chiknrice.iso.codec;
 
-import org.chiknrice.iso.codec.BitmapCodec;
+import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap.Type;
 import org.junit.Test;
@@ -556,6 +556,7 @@ public class BitmapCodecTest {
     }
 
     @Test
+    @SuppressWarnings({"EqualsBetweenInconvertibleTypes", "EqualsWithItself", "ObjectEqualsNull"})
     public void testBitmapEqualsAndHashCode() {
         byte[] bytes = new byte[8];
         bytes[0] = (byte) Integer.parseInt("01101001", 2);
@@ -623,6 +624,7 @@ public class BitmapCodecTest {
     }
 
     @Test
+    @SuppressWarnings({"EqualsBetweenInconvertibleTypes", "EqualsWithItself", "ObjectEqualsNull"})
     public void testEqualsAndHashCode() {
         BitmapCodec codec1 = new BitmapCodec(Type.BINARY);
         BitmapCodec codec2 = new BitmapCodec(Type.BINARY);

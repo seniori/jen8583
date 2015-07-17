@@ -141,6 +141,8 @@
     <!-- Defines the ISO message extension structure -->
     <complexType name="message-extension">
         <sequence>
+            <!-- Setting fields of a variable length composite field would augment the inherited set of fields but
+            setting fields of a fixed length would replace the whole composite field -->
             <element name="set" type="tns:root-fields" minOccurs="0"/>
             <element name="remove" type="tns:excludes" minOccurs="0"/>
         </sequence>
@@ -313,7 +315,7 @@
         </complexContent>
     </complexType>
 
-    <!-- Defines fixed length custom fields which specifies its codec (implementation of CustomCodec) -->
+    <!-- Defines fixed length custom fields which specifies its valueCodec (implementation of CustomCodec) -->
     <complexType name="custom-fixed">
         <sequence>
             <element name="param" minOccurs="0" maxOccurs="unbounded">

@@ -13,9 +13,10 @@
  * <http://www.gnu.org/licenses/>.
  * 
  */
-package org.chiknrice.iso;
+package org.chiknrice.iso.codec;
 
-import org.chiknrice.iso.codec.NumericCodec;
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.junit.Test;
 
@@ -216,6 +217,7 @@ public class NumericCodecTest {
     }
 
     @Test
+    @SuppressWarnings({"EqualsBetweenInconvertibleTypes", "EqualsWithItself", "ObjectEqualsNull"})
     public void testEqualsAndHashCode() {
         NumericCodec codec1 = new NumericCodec(Encoding.CHAR, 5);
         NumericCodec codec2 = new NumericCodec(Encoding.CHAR, 5);

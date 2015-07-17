@@ -13,9 +13,10 @@
  * <http://www.gnu.org/licenses/>.
  * 
  */
-package org.chiknrice.iso;
+package org.chiknrice.iso.codec;
 
-import org.chiknrice.iso.codec.DateTimeCodec;
+import org.chiknrice.iso.CodecException;
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
 import org.junit.Test;
 
@@ -102,6 +103,7 @@ public class DateTimeCodecTest {
     }
 
     @Test
+    @SuppressWarnings({"EqualsBetweenInconvertibleTypes", "EqualsWithItself", "ObjectEqualsNull"})
     public void testEqualsAndHashCode() {
         DateTimeCodec codec1 = new DateTimeCodec("hhmmss", TimeZone.getDefault(), Encoding.CHAR);
         DateTimeCodec codec2 = new DateTimeCodec("hhmmss", TimeZone.getDefault(), Encoding.CHAR);

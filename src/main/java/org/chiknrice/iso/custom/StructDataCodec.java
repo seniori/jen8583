@@ -32,14 +32,14 @@ import java.util.Map.Entry;
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public class StructDataCodec implements CustomCodec, Configurable {
+public class StructDataCodec implements CustomCodec<Map<String, String>>, Configurable {
 
     private enum Segment {
         KEY_LENGTH_IND, KEY_LENGTH, KEY, VALUE_LENGTH_IND, VALUE_LENGTH, VALUE
     }
 
     @Override
-    public Object decode(byte[] bytes) {
+    public Map<String, String> decode(byte[] bytes) {
         String text = new String(bytes, StandardCharsets.ISO_8859_1);
         StringReader reader = new StringReader(text);
 
@@ -49,7 +49,6 @@ public class StructDataCodec implements CustomCodec, Configurable {
         int lengthRead;
 
         String key = null;
-        String val = null;
 
         Map<String, String> map = new LinkedHashMap<>();
 
@@ -82,10 +81,9 @@ public class StructDataCodec implements CustomCodec, Configurable {
                         segment = Segment.VALUE;
                         break;
                     case VALUE:
-                        val = new String(buff, 0, lengthRead);
                         lengthToRead = 1;
                         segment = Segment.KEY_LENGTH_IND;
-                        map.put(key, val);
+                        map.put(key, new String(buff, 0, lengthRead));
                         break;
                     default:
                         throw new CodecException("Unknown segment type: " + segment);
@@ -98,9 +96,8 @@ public class StructDataCodec implements CustomCodec, Configurable {
     }
 
     @Override
-    public byte[] encode(Object value) {
-        @SuppressWarnings("unchecked")
-        Map<String, String> map = (Map<String, String>) value;
+    public byte[] encode(Map<String, String> value) {
+        Map<String, String> map = value;
         StringBuilder sb = new StringBuilder();
         for (Entry<String, String> kvPair : map.entrySet()) {
             String length = String.valueOf(kvPair.getKey().length());
@@ -121,12 +118,6 @@ public class StructDataCodec implements CustomCodec, Configurable {
     public void configure(Map<String, String> params) {
         this.params = params;
         // Configure codec here
-    }
-
-    public CustomCodec clone() throws CloneNotSupportedException {
-        StructDataCodec codec = new StructDataCodec();
-        codec.configure(params);
-        return codec;
     }
 
 }

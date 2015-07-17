@@ -46,19 +46,11 @@ public class Binary {
         return encode(value, 8);
     }
 
-    public static byte[] encode(Long value, int maxBytes) {
-        return encode((Number) value, maxBytes);
-    }
-
     public static byte[] encode(Integer value) {
         return encode(value, 4);
     }
 
-    public static byte[] encode(Integer value, int maxBytes) {
-        return encode((Number) value, maxBytes);
-    }
-
-    private static byte[] encode(Number value, int maxBytes) {
+    public static byte[] encode(Number value, int maxBytes) {
         int size;
         if (value instanceof Long) {
             size = 8;

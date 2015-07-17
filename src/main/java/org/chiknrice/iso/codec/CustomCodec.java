@@ -18,10 +18,10 @@ package org.chiknrice.iso.codec;
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public interface CustomCodec {
+public interface CustomCodec<T> {
 
-    Object decode(byte[] bytes);
+    T decode(byte[] bytes);
 
-    byte[] encode(Object value);
+    byte[] encode(T value);
 
 }

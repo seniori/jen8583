@@ -29,10 +29,6 @@ public final class CustomCodecAdapter implements Codec<Object> {
     private final CustomCodec customCodec;
     private final Integer fixedLength;
 
-    public CustomCodecAdapter(CustomCodec customCodec) {
-        this(customCodec, null);
-    }
-
     public CustomCodecAdapter(CustomCodec customCodec, Integer fixedLength) {
         this.customCodec = customCodec;
         this.fixedLength = fixedLength;

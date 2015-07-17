@@ -16,8 +16,6 @@
 package org.chiknrice.iso.config;
 
 import org.chiknrice.iso.codec.Codec;
-import org.chiknrice.iso.codec.CompositeCodec;
-import org.chiknrice.iso.codec.VarCodec;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
@@ -30,30 +28,46 @@ import java.util.Map.Entry;
 @SuppressWarnings("rawtypes")
 public class ComponentDef {
 
-    private ComponentDef parent;
-    private final Codec codec;
+    private final Codec valueCodec;
+    private final Codec<Number> lengthCodec;
+    private final Codec<Number> tagCodec;
     private final boolean mandatory;
 
-    public ComponentDef(Codec codec, boolean mandatory) {
-        this.codec = codec;
-        this.mandatory = mandatory;
-        CompositeCodec composite = null;
-        if (codec instanceof VarCodec) {
-            if (((VarCodec) codec).getCodec() instanceof CompositeCodec) {
-                composite = (CompositeCodec) ((VarCodec) codec).getCodec();
-            }
-        } else if (codec instanceof CompositeCodec) {
-            composite = (CompositeCodec) codec;
-        }
-        if (composite != null) {
-            for (ComponentDef child : composite.getSubComponentDefs().values()) {
-                child.parent = this;
-            }
-        }
+    protected CompositeDef parent;
+
+    public ComponentDef(Codec valueCodec) {
+        this(null, null, valueCodec, true);
     }
 
-    public Codec getCodec() {
-        return codec;
+    public ComponentDef(Codec<Number> lengthCodec, Codec valueCodec) {
+        this(null, lengthCodec, valueCodec, true);
+    }
+
+    public ComponentDef(Codec<Number> lengthCodec, Codec valueCodec, boolean mandatory) {
+        this(null, lengthCodec, valueCodec, mandatory);
+    }
+
+    public ComponentDef(Codec<Number> tagCodec, Codec<Number> lengthCodec, Codec valueCodec) {
+        this(tagCodec, lengthCodec, valueCodec, true);
+    }
+
+    public ComponentDef(Codec<Number> tagCodec, Codec<Number> lengthCodec, Codec valueCodec, boolean mandatory) {
+        this.tagCodec = tagCodec;
+        this.lengthCodec = lengthCodec;
+        this.valueCodec = valueCodec;
+        this.mandatory = mandatory;
+    }
+
+    public Codec<Number> getTagCodec() {
+        return tagCodec;
+    }
+
+    public Codec<Number> getLengthCodec() {
+        return lengthCodec;
+    }
+
+    public Codec getValueCodec() {
+        return valueCodec;
     }
 
     public boolean isMandatory() {
@@ -73,11 +87,7 @@ public class ComponentDef {
                 sb.append('.');
             }
             Map<Integer, ComponentDef> map;
-            if (parent.getCodec() instanceof VarCodec) {
-                map = ((CompositeCodec) ((VarCodec) parent.getCodec()).getCodec()).getSubComponentDefs();
-            } else {
-                map = ((CompositeCodec) parent.getCodec()).getSubComponentDefs();
-            }
+            map = parent.getSubComponentDefs();
             for (Entry<Integer, ComponentDef> defEntry : map.entrySet()) {
                 ComponentDef def = defEntry.getValue();
                 if (def == this) {
@@ -93,7 +103,7 @@ public class ComponentDef {
 
     @Override
     public int hashCode() {
-        return Hash.build(this, codec, mandatory);
+        return Hash.build(this, valueCodec, mandatory);
     }
 
     @Override
@@ -106,7 +116,7 @@ public class ComponentDef {
             return false;
         } else {
             ComponentDef other = (ComponentDef) o;
-            return EqualsBuilder.newInstance(other.codec, codec).append(other.mandatory, mandatory).isEqual();
+            return EqualsBuilder.newInstance(other.valueCodec, valueCodec).append(other.mandatory, mandatory).isEqual();
         }
     }
 

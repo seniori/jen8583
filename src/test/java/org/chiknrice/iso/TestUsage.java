@@ -22,6 +22,7 @@ import java.util.Date;
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
+@SuppressWarnings("UnusedAssignment")
 public class TestUsage {
 
     public void testUsage() {

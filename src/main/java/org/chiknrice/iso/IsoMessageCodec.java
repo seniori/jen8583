@@ -15,7 +15,7 @@
  */
 package org.chiknrice.iso;
 
-import org.chiknrice.iso.config.ComponentDef;
+import org.chiknrice.iso.config.CompositeDef;
 import org.chiknrice.iso.config.IsoMessageDef;
 
 import java.nio.ByteBuffer;
@@ -50,12 +50,11 @@ public class IsoMessageCodec {
      * @param isoBytes the bytes to decode.
      * @return the decoded IsoMessage.
      */
-    @SuppressWarnings("unchecked")
     public IsoMessage decode(byte[] isoBytes) {
         ByteBuffer buf = ByteBuffer.wrap(isoBytes);
         Map<Integer, Object> header = null;
         if (config.getHeaderDef() != null) {
-            header = (Map<Integer, Object>) config.getHeaderDef().getCodec().decode(buf);
+            header = config.getHeaderDef().decode(buf);
         }
         Integer mti = config.getMtiCodec().decode(buf).intValue();
         IsoMessage m = new IsoMessage(mti);
@@ -63,10 +62,10 @@ public class IsoMessageCodec {
             m.setHeader(new ArrayList<>(header.values()));
         }
 
-        ComponentDef fieldsDef = config.getFieldsDef().get(mti);
+        CompositeDef fieldsDef = config.getFieldsDef().get(mti);
 
         if (fieldsDef != null) {
-            Map<Integer, Object> fields = (Map<Integer, Object>) fieldsDef.getCodec().decode(buf);
+            Map<Integer, Object> fields = fieldsDef.decode(buf);
             for (Entry<Integer, Object> field : fields.entrySet()) {
                 m.setField(field.getKey(), field.getValue());
             }
@@ -82,19 +81,18 @@ public class IsoMessageCodec {
      * @param msg the message to be encoded.
      * @return the encoded bytes.
      */
-    @SuppressWarnings("unchecked")
     public byte[] encode(IsoMessage msg) {
         // TODO: use buffer pool
         ByteBuffer buf = ByteBuffer.allocate(0x7FFF);
         if (config.getHeaderDef() != null) {
-            config.getHeaderDef().getCodec().encode(buf, msg.getHeader());
+            config.getHeaderDef().encode(buf, msg.getHeader());
         }
         config.getMtiCodec().encode(buf, msg.getMti().longValue());
 
-        ComponentDef fieldsDef = config.getFieldsDef().get(msg.getMti());
+        CompositeDef fieldsDef = config.getFieldsDef().get(msg.getMti());
 
         if (fieldsDef != null) {
-            fieldsDef.getCodec().encode(buf, msg.getFields());
+            fieldsDef.encode(buf, msg.getFields());
             byte[] encoded = new byte[buf.position()];
             System.arraycopy(buf.array(), 0, encoded, 0, encoded.length);
             return encoded;

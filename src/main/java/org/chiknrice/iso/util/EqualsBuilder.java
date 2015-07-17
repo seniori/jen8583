@@ -52,8 +52,8 @@ public class EqualsBuilder {
         return true;
     }
 
-    private boolean eq(Object x, Object y) {
-        return x == null ? y == null : x.equals(y);
+    private boolean eq(Object left, Object right) {
+        return left == null ? right == null : left.equals(right);
     }
 
 }
