@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.chiknrice</groupId>
     <artifactId>jen8583</artifactId>
-    <version>0.0.8-SNAPSHOT</version>
+    <version>0.0.8</version>
 
     <name>jen8583</name>
     <description>A flexible Java ENcoder for ISO-8583 messages</description>
@@ -47,7 +47,7 @@
         <url>https://github.com/chiknrice/jen8583</url>
         <connection>scm:git:git@github.com:chiknrice/jen8583.git</connection>
         <developerConnection>scm:git:git@github.com:chiknrice/jen8583.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.0.8</tag>
     </scm>
 
     <dependencies>
