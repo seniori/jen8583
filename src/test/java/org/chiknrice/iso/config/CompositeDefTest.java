@@ -116,6 +116,21 @@ public class CompositeDefTest {
         codec.encode(buf, values);
     }
 
+    @Test(expected = CodecException.class)
+    public void testMissingMandatorySubComponent() {
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, new ComponentDef(new AlphaCodec(false), false));
+        subComponentDefs.put(2, new ComponentDef(new AlphaCodec(false), true));
+
+        CompositeDef codec = new CompositeDef(subComponentDefs);
+
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(1, "a");
+
+        ByteBuffer buf = ByteBuffer.allocate(20);
+        codec.encode(buf, values);
+    }
+
     @Test
     public void testEncodeCompositeSubField() {
         SortedMap<Integer, ComponentDef> level1Defs = new TreeMap<>();

@@ -36,11 +36,15 @@ public class ComponentDef {
     protected CompositeDef parent;
 
     public ComponentDef(Codec valueCodec) {
-        this(null, null, valueCodec, true);
+        this(valueCodec, true);
+    }
+
+    public ComponentDef(Codec valueCodec, boolean mandatory) {
+        this(null, null, valueCodec, mandatory);
     }
 
     public ComponentDef(Codec<Number> lengthCodec, Codec valueCodec) {
-        this(null, lengthCodec, valueCodec, true);
+        this(lengthCodec, valueCodec, true);
     }
 
     public ComponentDef(Codec<Number> lengthCodec, Codec valueCodec, boolean mandatory) {
