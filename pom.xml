@@ -104,8 +104,7 @@
                 <version>2.5.2</version>
                 <configuration>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
-                    <preparationGoals>clean verify</preparationGoals>
-                    <completionGoals>exec:exec</completionGoals>
+                    <preparationGoals>clean package exec:exec</preparationGoals>
                 </configuration>
             </plugin>
             <plugin>
