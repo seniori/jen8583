@@ -23,7 +23,7 @@ branches:
   only:
     - master
       # Build tags that match this regex in addition to building the master branch.
-    - /^v_[0-9]+\.[0-9]+\.[0-9]+/
+    - /^v[0-9]+\.[0-9]+\.[0-9]+/
 
 env:
   global:
