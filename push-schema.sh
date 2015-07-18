@@ -2,7 +2,7 @@
 
 FILENAME="jen8583-$1.xsd"
 
-#echo "$FILENAME"
+echo "Pushing $FILENAME"
 
 cd target
 

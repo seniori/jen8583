@@ -104,7 +104,7 @@
                 <version>2.5.2</version>
                 <configuration>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
-                    <completionGoals>exec:exec</completionGoals>
+                    <preparationGoals>exec:exec</preparationGoals>
                 </configuration>
             </plugin>
             <plugin>
