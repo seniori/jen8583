@@ -4,5 +4,19 @@ jdk:
   - oraclejdk8
   - oraclejdk7
 
+branches:
+  only:
+    - master
+      # Build tags that match this regex in addition to building the master branch.
+    - /^v_[0-9]+\.[0-9]+\.[0-9]+/
+
+env:
+  global:
+    - secure: "MpfWjXVnSvUnbxIJELi+15LWCKTZnVsiSjY1YGcO/yFvqQGsXCZCzsKg9PnQX+lHWkkqjyramLZWp9Ns3R4w6P8TgKBK50asET41dCWbxvLa92WC9aZhavECYnrtLMSZcgEV/0baHEMwOZb6wR/qQIMv9sO26UWmRP9FzNYh7SLtunTnAOhupqAfSLgTkCX2cPzg+h3mLaFH5H3+Bsjg91UwZ1Y62R2gb7Qvkgo6ynKXjblX3cXXsczbLCHNyW7tAh8XVVs5XsZu+kww6FweI981SzZJcFSs6HaEtIWPDHew0Lg0sumWEYxosi+ALjyEqmSuxjG9qzuJEovQ0OF4+C+9dCWlZ1vzMhLxO00KC/0OcAMnsl0sPcOFvrWiNbPlBADq7eH3iQ8OytGb3MsZbzL+c4v+rxc/kIALNXMciD7gmwimUOGVGo+HOcD2WQGCzi9XKkFynO5Ot2tA65JmfG0pKD4Wre5xOj3uxIq3MFoeYapnxumxYTXm8108XbJQl40HUSaSHeYOo1O2kUxMMWI3bYqfA2NMY8r1Jw/+NMXxAJVUsBe4FCfl3FIF+SaWSEapiS2uMhCI9BteQdsw9yQPHXbp5z73szucZU109ZNNLfT2kqgWLa9tc4hSPdISEI0ezTA3GR/HeUTxYgQmUg5gQAKXiHddB7au9stlxQY="
+    - secure: "ml2ebaoGmYPz4zrrTv/AEIoExV1dLXT4I1lOiPzzCoF9LQJQZKWYr0U9iarYTT2YjhGu6e0dRzLLTRUTV6px4+Me54sXHhUFClcUZU56HVlF5DMpbXrgcJ4BrWhNaoDJM9XgtdGfawd6uF6TDWdvHty+zImOFGkNQLPFVKkxf0YZzaeo0CvQdyhE9q0mpGMNupggl3NfIy6PIekrMEJX6Cl+r0VXupe4Dx1f5xc3aRxfxtdX0ujDXerQ/MxHlBUKD3CTMB1sQuc9+GO3pmsUYDHCsDDtbqFTDFgUugbHLHV1DTKLop9GdeL7AlUEy5JAFNxKbM9cYFobC4dJjExvw/mqNKIjuh78GOj0mN0oVSCsDbK1saYRhy+9flweoL+P+SZPPMgW5VTKlVWjXlXNiuPOZZyEonJCS8Vrmx7jmyXnDPKYyHEgfbiVt8f1xV/s1iMuyDQ6TVZSubagw24gH6LFV0SDi3w1Sza/aLd9P+HFwPSiF2v1GuJOaGfQNek8ME7A+7BtbulVBsRgoDvglseNJgHIiNULUBoDj24jFmmbBCbXXwsVom0TqaK4McXiuajVphauVa/iM3EyQmuVm7b5XwdhX8I0ZyCAzDutT9RqqsgElsGUMPeDcfgJdKO1H1z36XEnCEp27NeoDdoN1mizi/pOmCmi6O2ICkC28zw="
+
 script:
   - mvn cobertura:cobertura coveralls:report -Dcobertura.report.format=xml -P cobertura.pmd
+
+after_success:
+  - test "${TRAVIS_TAG}" != "" && mvn deploy --settings deploy-settings.xml -P publish.release

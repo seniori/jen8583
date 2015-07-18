@@ -94,6 +94,14 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.2</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -221,7 +229,7 @@
 
         <!-- Profile which attaches sources and javadocs during release -->
         <profile>
-            <id>release</id>
+            <id>publish.release</id>
             <build>
                 <plugins>
                     <plugin>
@@ -254,6 +262,12 @@
                     </plugin>
                 </plugins>
             </build>
+            <distributionManagement>
+                <repository>
+                    <id>bintray-repo</id>
+                    <url>https://api.bintray.com/maven/chiknrice/maven/jen8583;publish=1</url>
+                </repository>
+            </distributionManagement>
         </profile>
 
         <!-- Profile for building with cobertura & pmd -->
