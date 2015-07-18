@@ -16,12 +16,11 @@
   ~
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.chiknrice</groupId>
     <artifactId>jen8583</artifactId>
-    <version>0.0.6-SNAPSHOT</version>
+    <version>0.0.6</version>
 
     <name>jen8583</name>
     <description>A flexible Java ENcoder for ISO-8583 messages</description>
@@ -48,7 +47,7 @@
         <url>https://github.com/chiknrice/jen8583</url>
         <connection>scm:git:git@github.com:chiknrice/jen8583.git</connection>
         <developerConnection>scm:git:git@github.com:chiknrice/jen8583.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.0.6</tag>
     </scm>
 
     <dependencies>
