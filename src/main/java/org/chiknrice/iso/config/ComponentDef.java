@@ -120,7 +120,8 @@ public class ComponentDef {
             return false;
         } else {
             ComponentDef other = (ComponentDef) o;
-            return EqualsBuilder.newInstance(other.valueCodec, valueCodec).append(other.mandatory, mandatory).isEqual();
+            return EqualsBuilder.newInstance(other.tagCodec, tagCodec).append(other.lengthCodec, lengthCodec)
+                    .append(other.valueCodec, valueCodec).append(other.mandatory, mandatory).isEqual();
         }
     }
 
