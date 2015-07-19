@@ -15,6 +15,7 @@
  */
 package org.chiknrice.iso.config;
 
+import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.Codec;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
@@ -60,6 +61,11 @@ public class ComponentDef {
         this.lengthCodec = lengthCodec;
         this.valueCodec = valueCodec;
         this.mandatory = mandatory;
+
+        if (valueCodec instanceof CompositeDef) {
+            throw new ConfigException(String
+                    .format("%s shouldn't be used as valueCodec", CompositeDef.class.getSimpleName()));
+        }
     }
 
     public Codec<Number> getTagCodec() {
