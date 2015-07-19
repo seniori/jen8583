@@ -146,7 +146,7 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
 
             if (tagCodec != null) {
                 // nothing to do with a codec yet
-                tagCodec.encode(buf, Long.valueOf(index));
+                tagCodec.encode(buf, index);
             }
 
             ByteBuffer valueBuf;
