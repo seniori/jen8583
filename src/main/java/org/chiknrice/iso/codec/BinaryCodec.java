@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public final class BinaryCodec implements Codec<byte[]> {
+public class BinaryCodec implements Codec<byte[]> {
 
     private final Integer fixedLength;
 

@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public final class AlphaCodec implements Codec<String> {
+public class AlphaCodec implements Codec<String> {
 
     private final Boolean trim;
     private final Boolean leftJustified;
