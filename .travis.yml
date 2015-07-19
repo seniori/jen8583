@@ -34,4 +34,4 @@ script:
   - mvn cobertura:cobertura coveralls:report -Dcobertura.report.format=xml -P snapshot.build
 
 after_success:
-  - test "${TRAVIS_TAG}" != "" && mvn deploy --settings deploy-settings.xml -P release.build
+  - test "${TRAVIS_TAG}" != "" && test “${TRAVIS_JDK_VERSION}” == “oraclejdk7″ && mvn deploy --settings src/build/deploy-settings.xml -P release.build
