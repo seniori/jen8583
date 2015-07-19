@@ -20,6 +20,7 @@ import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.codec.*;
 import org.chiknrice.iso.codec.BitmapCodec.Bitmap;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.mockito.InOrder;
 
@@ -33,6 +34,8 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
+ * Encode:
+ *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 public class CompositeDefTest {
@@ -40,9 +43,9 @@ public class CompositeDefTest {
     @Test(expected = ConfigException.class)
     public void testBitmapNotAllowedWithSubfield1() {
         BitmapCodec bitmapCodec = mock(BitmapCodec.class);
-        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
-        subFieldsDef.put(1, mock(ComponentDef.class));
-        new CompositeDef(subFieldsDef, bitmapCodec);
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, mock(ComponentDef.class));
+        new CompositeDef(subComponentDefs, bitmapCodec);
     }
 
     @Test
@@ -70,17 +73,17 @@ public class CompositeDefTest {
     }
 
     @Test
-    public void testEncodeVarLengthSubField() {
+    public void testEncodeVarLengthSubSubComponent() {
         Codec<String> alphaCodec = spy(new AlphaCodec(false));
         ComponentDef alphaComponent = new ComponentDef(alphaCodec);
         Codec<Number> lengthCodec = spy(new NumericCodec(Encoding.CHAR, 2));
 
         ComponentDef varAlphaComponent = new ComponentDef(lengthCodec, alphaCodec);
 
-        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
-        subFieldsDef.put(1, alphaComponent);
-        subFieldsDef.put(2, varAlphaComponent);
-        CompositeDef compositeDef = new CompositeDef(subFieldsDef);
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, alphaComponent);
+        subComponentDefs.put(2, varAlphaComponent);
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
 
         ByteBuffer buf = ByteBuffer.allocate(32);
 
@@ -104,7 +107,7 @@ public class CompositeDefTest {
     }
 
     @Test
-    public void testEncodeVarLengthBinarySubField() {
+    public void testEncodeVarLengthBinarySubSubComponent() {
         Codec<String> alphaCodec = spy(new AlphaCodec(false));
         ComponentDef alphaComponent = new ComponentDef(alphaCodec);
         Codec<Number> lengthCodec = spy(new NumericCodec(Encoding.CHAR, 2));
@@ -112,10 +115,10 @@ public class CompositeDefTest {
         Codec<byte[]> binaryCodec = spy(new BinaryCodec());
         ComponentDef varBinaryComponent = new ComponentDef(lengthCodec, binaryCodec);
 
-        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
-        subFieldsDef.put(1, alphaComponent);
-        subFieldsDef.put(2, varBinaryComponent);
-        CompositeDef compositeDef = new CompositeDef(subFieldsDef);
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, alphaComponent);
+        subComponentDefs.put(2, varBinaryComponent);
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
 
         ByteBuffer buf = ByteBuffer.allocate(32);
 
@@ -141,7 +144,7 @@ public class CompositeDefTest {
     }
 
     @Test
-    public void testEncodeTlvSubField() {
+    public void testEncodeTlvSubSubComponent() {
         Codec<String> alphaCodec = spy(new AlphaCodec(false));
         ComponentDef alphaComponent = new ComponentDef(alphaCodec);
         Codec<Number> lengthCodec = spy(new NumericCodec(Encoding.CHAR, 2));
@@ -149,10 +152,10 @@ public class CompositeDefTest {
 
         ComponentDef tlvAlphaComponent = new ComponentDef(tagCodec, lengthCodec, alphaCodec);
 
-        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
-        subFieldsDef.put(1, alphaComponent);
-        subFieldsDef.put(2, tlvAlphaComponent);
-        CompositeDef compositeDef = new CompositeDef(subFieldsDef);
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, alphaComponent);
+        subComponentDefs.put(2, tlvAlphaComponent);
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
 
         ByteBuffer buf = ByteBuffer.allocate(32);
 
@@ -177,15 +180,15 @@ public class CompositeDefTest {
     }
 
     @Test
-    public void testEncodeNonCompositeSubFields() {
+    public void testEncodeNonCompositeSubSubComponents() {
         Codec<String> alphaCodec = new AlphaCodec(false);
         ComponentDef alphaComponentDef = new ComponentDef(alphaCodec);
 
-        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
-        subFieldsDef.put(1, alphaComponentDef);
-        subFieldsDef.put(2, alphaComponentDef);
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, alphaComponentDef);
+        subComponentDefs.put(2, alphaComponentDef);
 
-        CompositeDef compositeDef = new CompositeDef(subFieldsDef);
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
 
         ByteBuffer buf = ByteBuffer.allocate(32);
 
@@ -231,7 +234,7 @@ public class CompositeDefTest {
     }
 
     @Test
-    public void testEncodeCompositeSubField() {
+    public void testEncodeCompositeSubSubComponent() {
         AlphaCodec alphaCodec = spy(new AlphaCodec(false));
         ComponentDef componentDef = new ComponentDef(alphaCodec);
         SortedMap<Integer, ComponentDef> level2Defs = new TreeMap<>();
@@ -309,16 +312,16 @@ public class CompositeDefTest {
         compositeDef.encode(buf, new HashMap<Integer, Object>());
     }
 
-    @Test(expected = CodecException.class)
-    public void testUnexpectedFields() {
+    @Test
+    public void testErrorOnUnexpectedSubComponents() {
         Codec<String> alphaCodec = new AlphaCodec(false);
         ComponentDef alphaComponentDef = new ComponentDef(alphaCodec);
 
-        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
-        subFieldsDef.put(1, alphaComponentDef);
-        subFieldsDef.put(2, alphaComponentDef);
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, alphaComponentDef);
+        subComponentDefs.put(2, alphaComponentDef);
 
-        CompositeDef compositeDef = new CompositeDef(subFieldsDef);
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
 
         ByteBuffer buf = ByteBuffer.allocate(32);
 
@@ -327,7 +330,12 @@ public class CompositeDefTest {
         values.put(2, "2");
         values.put(3, "3");
 
-        compositeDef.encode(buf, values);
+        try {
+            compositeDef.encode(buf, values);
+            fail("Decoding should fail with unexpected component(s)");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Unexpected component(s) {3=3} while encoding message"));
+        }
     }
 
 
@@ -361,6 +369,110 @@ public class CompositeDefTest {
         assertNotEquals(compositeDef1.hashCode(), compositeDef3.hashCode());
         assertTrue(!compositeDef2.equals(compositeDef3));
         assertNotEquals(compositeDef2.hashCode(), compositeDef3.hashCode());
+    }
+
+    @Test
+    public void testDecodeBitmap() {
+        BitmapCodec bitmapCodec = spy(new BitmapCodec(Bitmap.Type.BINARY));
+
+        Codec<String> alphaCodec2 = mock(Codec.class);
+        Codec<String> alphaCodec3 = mock(Codec.class);
+        when(alphaCodec2.decode(any(ByteBuffer.class))).thenReturn("1");
+        when(alphaCodec3.decode(any(ByteBuffer.class))).thenReturn("2");
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(2, new ComponentDef(alphaCodec2));
+        subComponentDefs.put(3, new ComponentDef(alphaCodec3));
+
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs, bitmapCodec);
+
+        ByteBuffer buf = ByteBuffer.allocate(32);
+        buf.put((byte) Integer.parseInt("01100000", 2));
+        buf.put(new byte[7]);
+
+        buf.clear();
+
+        Map<Integer, Object> decoded = compositeDef.decode(buf);
+
+        assertThat(decoded.get(2), CoreMatchers.<Object>is("1"));
+        assertThat(decoded.get(3), CoreMatchers.<Object>is("2"));
+
+        InOrder inOrder = inOrder(bitmapCodec, alphaCodec2, alphaCodec3);
+        inOrder.verify(bitmapCodec).decode(buf);
+        inOrder.verify(alphaCodec2).decode(buf);
+        inOrder.verify(alphaCodec3).decode(buf);
+    }
+
+    @Test
+    public void testDecodeNonCompositeSubComponents() {
+        Codec<String> alphaCodec1 = mock(Codec.class);
+        Codec<String> alphaCodec2 = mock(Codec.class);
+        when(alphaCodec1.decode(any(ByteBuffer.class))).thenReturn("1");
+        when(alphaCodec2.decode(any(ByteBuffer.class))).thenReturn("2");
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(1, new ComponentDef(alphaCodec1));
+        subComponentDefs.put(2, new ComponentDef(alphaCodec2));
+
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
+
+        ByteBuffer buf = mock(ByteBuffer.class);
+
+        Map<Integer, Object> decoded = compositeDef.decode(buf);
+
+        assertThat(decoded.get(1), CoreMatchers.<Object>is("1"));
+        assertThat(decoded.get(2), CoreMatchers.<Object>is("2"));
+
+        InOrder inOrder = inOrder(alphaCodec1, alphaCodec2);
+        inOrder.verify(alphaCodec1).decode(buf);
+        inOrder.verify(alphaCodec2).decode(buf);
+    }
+
+    @Test
+    public void testDecodeWithMissingConfigNoBitmap() {
+        Codec<String> alphaCodec1 = mock(Codec.class);
+        Codec<String> alphaCodec2 = mock(Codec.class);
+        when(alphaCodec1.decode(any(ByteBuffer.class))).thenReturn("1");
+        when(alphaCodec2.decode(any(ByteBuffer.class))).thenReturn("2");
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(2, new ComponentDef(alphaCodec2));
+
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs);
+
+        ByteBuffer buf = mock(ByteBuffer.class);
+
+        try {
+            compositeDef.decode(buf);
+            fail("Decoding should fail with a missing configuration");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Missing configuration for 1"));
+        }
+    }
+
+    @Test
+    public void testDecodeWithMissingConfigWithBitmap() {
+        BitmapCodec bitmapCodec = spy(new BitmapCodec(Bitmap.Type.BINARY));
+
+        Codec<String> alphaCodec2 = mock(Codec.class);
+        Codec<String> alphaCodec3 = mock(Codec.class);
+        when(alphaCodec2.decode(any(ByteBuffer.class))).thenReturn("1");
+        when(alphaCodec3.decode(any(ByteBuffer.class))).thenReturn("2");
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(2, new ComponentDef(alphaCodec2));
+        subComponentDefs.put(3, new ComponentDef(alphaCodec3));
+
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs, bitmapCodec);
+
+        ByteBuffer buf = ByteBuffer.allocate(32);
+        buf.put((byte) Integer.parseInt("01100001", 2));
+        buf.put(new byte[7]);
+
+        buf.clear();
+
+        try {
+            compositeDef.decode(buf);
+            fail("Decoding should fail with a missing configuration");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Missing configuration for 8"));
+        }
     }
 
 }

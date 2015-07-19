@@ -74,9 +74,29 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
         }
 
         Map<Integer, Object> values = new TreeMap<>();
-        for (Map.Entry<Integer, ComponentDef> defEntry : subComponentDefs.entrySet()) {
-            Integer index = defEntry.getKey();
-            ComponentDef def = defEntry.getValue();
+        for (int i = bitmap == null ? 1 : 2; i <= 128; i++) {
+            Integer index = i;
+            ComponentDef def = subComponentDefs.get(index);
+
+            if (def == null) {
+                // no bitmap expects all sequential definitions to exist
+                if (bitmap == null) {
+                    if (subComponentDefs.lastKey() > index) {
+                        throw new CodecException(format("Missing configuration for %s%d", (this.parent != null ? this
+                                .toString().concat(".") : ""), index));
+                    } else {
+                        break;
+                    }
+                    // expecting component as bit is set
+                } else if (bitmap.isSet(index)) {
+                    throw new CodecException(format("Missing configuration for %s%d", (this.parent != null ? this
+                            .toString().concat(".") : ""), index));
+                } else {
+                    // bit is just not set
+                    continue;
+                }
+            }
+
             Codec<Number> tagCodec = def.getTagCodec();
             Codec<Number> lengthCodec = def.getLengthCodec();
             Codec valueCodec = def.getValueCodec();
@@ -109,11 +129,8 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
                     valueBuf = buf;
                 }
 
-                if (def instanceof CompositeDef) {
-                    value = ((CompositeDef) def).decode(valueBuf);
-                } else {
-                    value = valueCodec.decode(valueBuf);
-                }
+                value = valueCodec.decode(valueBuf);
+
             } catch (CodecException e) {
                 throw new CodecException(format("Failed to decode %s", def), e);
             }
@@ -123,7 +140,9 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
             }
 
             values.put(index, value);
+
         }
+
         return values;
     }
 
@@ -169,11 +188,7 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
                     valueBuf = buf;
                 }
 
-                if (def instanceof CompositeDef) {
-                    ((CompositeDef) def).encode(valueBuf, (Map<Integer, Object>) value);
-                } else {
-                    valueCodec.encode(valueBuf, value);
-                }
+                valueCodec.encode(valueBuf, value);
 
                 if (lengthCodec != null) {
                     int endPos = buf.position() + valueBuf.position();
@@ -193,7 +208,8 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
         }
 
         if (tempMap.size() > 0) {
-            throw new CodecException(format("Unexpected components %s while encoding %s", tempMap, this));
+            throw new CodecException(format("Unexpected component(s) %s while encoding %s", tempMap, this.toString()
+                    .isEmpty() ? "message" : this));
         }
     }
 
@@ -208,6 +224,11 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
 
     public BitmapCodec getBitmapCodec() {
         return bitmapCodec;
+    }
+
+    @Override
+    public Codec getValueCodec() {
+        return this;
     }
 
     @Override
