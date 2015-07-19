@@ -24,15 +24,12 @@ import org.junit.Test;
 import org.mockito.InOrder;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.chiknrice.iso.config.ComponentDef.Encoding;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -290,7 +287,6 @@ public class CompositeDefTest {
     public void testGetters() {
         BitmapCodec bitmapCodec = mock(BitmapCodec.class);
         SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
-
         subComponentDefs.put(2, mock(ComponentDef.class));
 
         CompositeDef compositeDef = new CompositeDef(subComponentDefs, bitmapCodec);
@@ -298,6 +294,73 @@ public class CompositeDefTest {
         assertThat(compositeDef.getEncoding(), is(Encoding.BINARY));
         assertThat(compositeDef.getBitmapCodec(), is(bitmapCodec));
         assertThat(compositeDef.getSubComponentDefs(), is(subComponentDefs));
+    }
+
+    @Test(expected = CodecException.class)
+    public void testErrorEncodingBitmap() {
+        ByteBuffer buf = mock(ByteBuffer.class);
+        BitmapCodec bitmapCodec = mock(BitmapCodec.class);
+        doThrow(RuntimeException.class).when(bitmapCodec).encode(any(ByteBuffer.class), any(Set.class));
+        SortedMap<Integer, ComponentDef> subComponentDefs = new TreeMap<>();
+        subComponentDefs.put(2, mock(ComponentDef.class));
+
+        CompositeDef compositeDef = new CompositeDef(subComponentDefs, bitmapCodec);
+
+        compositeDef.encode(buf, new HashMap<Integer, Object>());
+    }
+
+    @Test(expected = CodecException.class)
+    public void testUnexpectedFields() {
+        Codec<String> alphaCodec = new AlphaCodec(false);
+        ComponentDef alphaComponentDef = new ComponentDef(alphaCodec);
+
+        SortedMap<Integer, ComponentDef> subFieldsDef = new TreeMap<>();
+        subFieldsDef.put(1, alphaComponentDef);
+        subFieldsDef.put(2, alphaComponentDef);
+
+        CompositeDef compositeDef = new CompositeDef(subFieldsDef);
+
+        ByteBuffer buf = ByteBuffer.allocate(32);
+
+        Map<Integer, Object> values = new HashMap<>();
+        values.put(1, "1");
+        values.put(2, "2");
+        values.put(3, "3");
+
+        compositeDef.encode(buf, values);
+    }
+
+
+    @Test
+    @SuppressWarnings({"EqualsBetweenInconvertibleTypes", "EqualsWithItself", "ObjectEqualsNull"})
+    public void testEqualsAndHashCode() {
+        SortedMap<Integer, ComponentDef> subComponentDefs1 = mock(SortedMap.class);
+        when(subComponentDefs1.size()).thenReturn(1);
+        SortedMap<Integer, ComponentDef> subComponentDefs2 = mock(SortedMap.class);
+        when(subComponentDefs2.size()).thenReturn(1);
+
+        BitmapCodec bitmapCodec = mock(BitmapCodec.class);
+
+        Codec<Number> tagCodec = mock(Codec.class);
+        Codec<Number> lengthCodec = mock(Codec.class);
+
+
+        CompositeDef compositeDef1 = new CompositeDef(subComponentDefs1, bitmapCodec, tagCodec, lengthCodec, true);
+
+        CompositeDef compositeDef2 = new CompositeDef(subComponentDefs1, bitmapCodec, tagCodec, lengthCodec, true);
+
+        CompositeDef compositeDef3 = new CompositeDef(subComponentDefs2, bitmapCodec, tagCodec, lengthCodec, true);
+
+
+        assertTrue(!compositeDef1.equals(null));
+        assertTrue(!compositeDef1.equals("a"));
+        assertTrue(compositeDef1.equals(compositeDef1));
+        assertTrue(compositeDef1.equals(compositeDef2));
+        assertEquals(compositeDef1.hashCode(), compositeDef2.hashCode());
+        assertTrue(!compositeDef1.equals(compositeDef3));
+        assertNotEquals(compositeDef1.hashCode(), compositeDef3.hashCode());
+        assertTrue(!compositeDef2.equals(compositeDef3));
+        assertNotEquals(compositeDef2.hashCode(), compositeDef3.hashCode());
     }
 
 }

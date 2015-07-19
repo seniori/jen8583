@@ -66,7 +66,7 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
     }
 
     public Map<Integer, Object> decode(ByteBuffer buf) {
-        BitmapCodec.Bitmap bitmap = null;
+        BitmapCodec.Bitmap bitmap;
         try {
             bitmap = bitmapCodec != null ? bitmapCodec.decode(buf) : null;
         } catch (Exception e) {
