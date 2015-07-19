@@ -53,7 +53,11 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
         this.bitmapCodec = bitmapCodec;
 
         if (bitmapCodec != null && subComponentDefs.containsKey(1)) {
-            throw new ConfigException("Composite components with bitmap cannot have subfield index 1");
+            throw new ConfigException("Composite components with bitmap cannot have sub field index 1");
+        }
+
+        if (subComponentDefs == null || subComponentDefs.size() == 0) {
+            throw new ConfigException("Composite components should have at least 1 sub field");
         }
 
         for (ComponentDef subComponentDef : subComponentDefs.values()) {
@@ -62,7 +66,12 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
     }
 
     public Map<Integer, Object> decode(ByteBuffer buf) {
-        BitmapCodec.Bitmap bitmap = bitmapCodec != null ? bitmapCodec.decode(buf) : null;
+        BitmapCodec.Bitmap bitmap = null;
+        try {
+            bitmap = bitmapCodec != null ? bitmapCodec.decode(buf) : null;
+        } catch (Exception e) {
+            throw new CodecException(format("Failed to decode bitmap for %s", this), e);
+        }
 
         Map<Integer, Object> values = new TreeMap<>();
         for (Map.Entry<Integer, ComponentDef> defEntry : subComponentDefs.entrySet()) {
@@ -79,42 +88,38 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
                 continue;
             }
 
-            if (tagCodec != null) {
-                // nothing to do with a tag yet
-                Integer tag = tagCodec.decode(buf).intValue();
-                if (!index.equals(tag)) {
-                    throw new CodecException(format("Unexpected TLV tag %d", tag));
-                }
-            }
-
-            ByteBuffer valueBuf;
-            if (lengthCodec != null) {
-                int varLength = lengthCodec.decode(buf).intValue();
-                int limit = valueCodec.getEncoding() == Encoding.BCD ? varLength / 2 + varLength % 2 : varLength;
-                valueBuf = buf.slice();
-                valueBuf.limit(limit);
-                buf.position(buf.position() + limit);
-            } else {
-                valueBuf = buf;
-            }
-
             Object value;
             try {
+                if (tagCodec != null) {
+                    // nothing to do with a tag yet
+                    Integer tag = tagCodec.decode(buf).intValue();
+                    if (!index.equals(tag)) {
+                        throw new CodecException(format("Unexpected TLV tag %d when decoding %s", tag, def));
+                    }
+                }
+
+                ByteBuffer valueBuf;
+                if (lengthCodec != null) {
+                    int varLength = lengthCodec.decode(buf).intValue();
+                    int limit = valueCodec.getEncoding() == Encoding.BCD ? varLength / 2 + varLength % 2 : varLength;
+                    valueBuf = buf.slice();
+                    valueBuf.limit(limit);
+                    buf.position(buf.position() + limit);
+                } else {
+                    valueBuf = buf;
+                }
+
                 if (def instanceof CompositeDef) {
                     value = ((CompositeDef) def).decode(valueBuf);
                 } else {
                     value = valueCodec.decode(valueBuf);
                 }
-            } catch (Exception e) {
-                if (e instanceof CodecException) {
-                    throw e;
-                } else {
-                    throw new CodecException(format("Failed to decode %s", def), e);
-                }
+            } catch (CodecException e) {
+                throw new CodecException(format("Failed to decode %s", def), e);
             }
 
             if (value == null && def.isMandatory()) {
-                throw new CodecException(format("Null mandatory component %s", def));
+                throw new CodecException(format("Missing mandatory component %s", def));
             }
 
             values.put(index, value);
@@ -125,7 +130,11 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
     @SuppressWarnings("unchecked")
     public void encode(ByteBuffer buf, Map<Integer, Object> values) {
         if (bitmapCodec != null) {
-            bitmapCodec.encode(buf, values.keySet());
+            try {
+                bitmapCodec.encode(buf, values.keySet());
+            } catch (Exception e) {
+                throw new CodecException(format("Failed to encode bitmap for %s", this), e);
+            }
         }
         Map<Integer, Object> tempMap = new HashMap<>(values);
         for (Map.Entry<Integer, ComponentDef> defEntry : subComponentDefs.entrySet()) {
@@ -144,51 +153,47 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
                 }
             }
 
-            if (tagCodec != null) {
-                // nothing to do with a codec yet
-                tagCodec.encode(buf, index);
-            }
-
-            ByteBuffer valueBuf;
-            if (lengthCodec != null) {
-                buf.mark();
-                // this is just to consume part of the buffer which would later be filled with correct length data
-                lengthCodec.encode(buf, 0);
-                valueBuf = buf.slice();
-            } else {
-                valueBuf = buf;
-            }
-
             try {
+                if (tagCodec != null) {
+                    // nothing to do with a codec yet
+                    tagCodec.encode(buf, index);
+                }
+
+                ByteBuffer valueBuf;
+                if (lengthCodec != null) {
+                    buf.mark();
+                    // this is just to consume part of the buffer which would later be filled with correct length data
+                    lengthCodec.encode(buf, 0);
+                    valueBuf = buf.slice();
+                } else {
+                    valueBuf = buf;
+                }
+
                 if (def instanceof CompositeDef) {
                     ((CompositeDef) def).encode(valueBuf, (Map<Integer, Object>) value);
                 } else {
                     valueCodec.encode(valueBuf, value);
                 }
-            } catch (Exception e) {
-                if (e instanceof CodecException) {
-                    throw e;
-                } else {
-                    throw new CodecException(format("Failed to encode %s", def), e);
-                }
-            }
 
-            if (lengthCodec != null) {
-                int endPos = buf.position() + valueBuf.position();
-                buf.reset();
-                int valueLength;
-                if (Encoding.BINARY == valueCodec.getEncoding()) {
-                    valueLength = valueBuf.position();
-                } else {
-                    valueLength = value.toString().length();
+                if (lengthCodec != null) {
+                    int endPos = buf.position() + valueBuf.position();
+                    buf.reset();
+                    int valueLength;
+                    if (Encoding.BINARY == valueCodec.getEncoding()) {
+                        valueLength = valueBuf.position();
+                    } else {
+                        valueLength = value.toString().length();
+                    }
+                    lengthCodec.encode(buf, valueLength);
+                    buf.position(endPos);
                 }
-                lengthCodec.encode(buf, valueLength);
-                buf.position(endPos);
+            } catch (Exception e) {
+                throw new CodecException(format("Failed to encode %s", def), e);
             }
         }
 
         if (tempMap.size() > 0) {
-            throw new CodecException(format("Unexpected components %s", tempMap));
+            throw new CodecException(format("Unexpected components %s while encoding %s", tempMap, this));
         }
     }
 
