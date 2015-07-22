@@ -81,6 +81,7 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
             if (def == null) {
                 // no bitmap expects all sequential definitions to exist
                 if (bitmap == null) {
+                    // TODO: fix TLV decoding - this would definitely fail as TLV cannot be expected to be sorted
                     if (subComponentDefs.lastKey() > index) {
                         throw new CodecException(format("Missing configuration for %s%d", (this.parent != null ? this
                                 .toString().concat(".") : ""), index));
