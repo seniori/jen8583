@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -36,10 +37,10 @@ public class BinaryCodecTest {
         codec.encode(buf, bytes);
         byte[] encoded = buf.array();
         for (int i = 0; i < bytes.length; i++) {
-            assertEquals(bytes[i], encoded[i]);
+            assertThat(encoded[i], is(bytes[i]));
         }
         for (int i = buf.position(); i < encoded.length; i++) {
-            assertEquals(0x00, encoded[i]);
+            assertThat(encoded[i], is((byte) 0x00));
         }
     }
 
@@ -51,10 +52,10 @@ public class BinaryCodecTest {
         codec.encode(buf, bytes);
         byte[] encoded = buf.array();
         for (int i = 0; i < bytes.length; i++) {
-            assertEquals(bytes[i], encoded[i + 2]);
+            assertThat(encoded[i + 2], is(bytes[i]));
         }
         for (int i = buf.position(); i < encoded.length; i++) {
-            assertEquals(0x00, encoded[i]);
+            assertThat(encoded[i], is((byte) 0x00));
         }
     }
 
@@ -66,19 +67,24 @@ public class BinaryCodecTest {
         codec.encode(buf, bytes);
         byte[] encoded = buf.array();
         for (int i = 0; i < bytes.length; i++) {
-            assertEquals(bytes[i], encoded[i]);
+            assertThat(encoded[i], is(bytes[i]));
         }
         for (int i = buf.position(); i < encoded.length; i++) {
-            assertEquals(0x00, encoded[i]);
+            assertThat(encoded[i], is((byte) 0x00));
         }
     }
 
-    @Test(expected = CodecException.class)
+    @Test
     public void testEncodeExceedingFixedLength() {
         BinaryCodec codec = new BinaryCodec(3);
         byte[] bytes = new byte[]{0x11, 0x22, 0x33, 0x44, 0x55};
         ByteBuffer buf = ByteBuffer.allocate(10);
-        codec.encode(buf, bytes);
+        try {
+            codec.encode(buf, bytes);
+            fail("Encoding should fail due to exceeding fixed length");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Bytes exceed fixed length 3"));
+        }
     }
 
     @Test
@@ -90,7 +96,7 @@ public class BinaryCodecTest {
         assertTrue(bytes != decoded);
         assertEquals(bytes.length, decoded.length);
         for (int i = 0; i < decoded.length; i++) {
-            assertEquals(decoded[i], bytes[i]);
+            assertThat(decoded[i], is(bytes[i]));
         }
     }
 
@@ -103,14 +109,14 @@ public class BinaryCodecTest {
         assertTrue(bytes != decoded);
         assertEquals(4, decoded.length);
         for (int i = 0; i < decoded.length; i++) {
-            assertEquals(decoded[i], bytes[i]);
+            assertThat(decoded[i], is(bytes[i]));
         }
     }
 
     @Test
     public void testGetEncoding() {
         BinaryCodec codec = new BinaryCodec(4);
-        assertEquals(Encoding.BINARY, codec.getEncoding());
+        assertThat(codec.getEncoding(), is(Encoding.BINARY));
     }
 
     @Test

@@ -61,7 +61,7 @@ public class AlphaCodec implements Codec<String> {
         if (fixedLength != null) {
             if (value.length() > fixedLength) {
                 throw new CodecException(String
-                        .format("Value length of %s greater than allowed length %d", value, fixedLength));
+                        .format("Length of value (%s) exceeds allowed length (%d)", value, fixedLength));
             } else {
                 value = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", value);
             }

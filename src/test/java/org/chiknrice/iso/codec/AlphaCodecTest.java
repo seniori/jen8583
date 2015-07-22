@@ -23,6 +23,7 @@ import org.junit.Test;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -37,7 +38,7 @@ public class AlphaCodecTest {
         codec.encode(buf, "abc");
         byte[] bytes = buf.array();
         String encoded = new String(bytes, 0, 3, StandardCharsets.ISO_8859_1);
-        assertEquals("abc", encoded);
+        assertThat(encoded, is("abc"));
     }
 
     @Test
@@ -47,7 +48,7 @@ public class AlphaCodecTest {
         codec.encode(buf, "ü");
         byte[] bytes = buf.array();
         String encoded = new String(bytes, 0, 1, StandardCharsets.ISO_8859_1);
-        assertEquals("ü", encoded);
+        assertThat(encoded, is("ü"));
     }
 
     @Test
@@ -57,12 +58,17 @@ public class AlphaCodecTest {
         codec.encode(buf, "ü");
         byte[] bytes = buf.array();
         String encoded = new String(bytes, 0, 3, StandardCharsets.ISO_8859_1);
-        assertEquals("ü  ", encoded);
+        assertThat(encoded, is("ü  "));
     }
 
-    @Test(expected = ConfigException.class)
+    @Test
     public void testInsufficientConstructorArgs() {
-        new AlphaCodec(true, null, 9);
+        try {
+            new AlphaCodec(true, null, 9);
+            fail("Constructor should fail due to missing required param");
+        } catch (ConfigException e) {
+            assertThat(e.getMessage(), is("Fixed length config requires justified flag"));
+        }
     }
 
     @Test
@@ -72,14 +78,19 @@ public class AlphaCodecTest {
         codec.encode(buf, "abc");
         byte[] bytes = buf.array();
         String encoded = new String(bytes, 0, 9, StandardCharsets.ISO_8859_1);
-        assertEquals("      abc", encoded);
+        assertThat(encoded, is("      abc"));
     }
 
-    @Test(expected = CodecException.class)
+    @Test
     public void testExceedFixedLength() {
         AlphaCodec codec = new AlphaCodec(true, false, 4);
         ByteBuffer buf = ByteBuffer.allocate(20);
-        codec.encode(buf, "abcdef");
+        try {
+            codec.encode(buf, "abcdef");
+            fail("Encoding should fail due to exceeding fixed length");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Length of value (abcdef) exceeds allowed length (4)"));
+        }
     }
 
     @Test
@@ -89,7 +100,7 @@ public class AlphaCodecTest {
         codec.encode(buf, "abc");
         byte[] bytes = buf.array();
         String encoded = new String(bytes, 0, 9, StandardCharsets.ISO_8859_1);
-        assertEquals("abc      ", encoded);
+        assertThat(encoded, is("abc      "));
     }
 
     @Test
@@ -97,7 +108,7 @@ public class AlphaCodecTest {
         AlphaCodec codec = new AlphaCodec(false);
         byte[] bytes = new byte[]{0x31, 0x32, 0x33};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals("123", decoded);
+        assertThat(decoded, is("123"));
     }
 
     @Test
@@ -105,7 +116,7 @@ public class AlphaCodecTest {
         AlphaCodec codec = new AlphaCodec(false);
         byte[] bytes = new byte[]{(byte) 0xfc};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals("ü", decoded);
+        assertThat(decoded, is("ü"));
     }
 
     @Test
@@ -113,7 +124,7 @@ public class AlphaCodecTest {
         AlphaCodec codec = new AlphaCodec(false);
         byte[] bytes = new byte[]{0x20, (byte) 0xfc, 0x20, 0x20, 0x20};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(" ü   ", decoded);
+        assertThat(decoded, is(" ü   "));
     }
 
     @Test
@@ -121,7 +132,7 @@ public class AlphaCodecTest {
         AlphaCodec codec = new AlphaCodec(true);
         byte[] bytes = new byte[]{0x20, (byte) 0xfc, 0x20, 0x20, 0x20};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals("ü", decoded);
+        assertThat(decoded, is("ü"));
     }
 
     @Test
@@ -129,13 +140,13 @@ public class AlphaCodecTest {
         AlphaCodec codec = new AlphaCodec(false, false, 3);
         byte[] bytes = new byte[]{0x20, (byte) 0xfc, 0x20, 0x20, 0x20};
         String decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(" ü ", decoded);
+        assertThat(decoded, is(" ü "));
     }
 
     @Test
     public void testGetEncoding() {
         AlphaCodec codec = new AlphaCodec(false);
-        assertEquals(Encoding.CHAR, codec.getEncoding());
+        assertThat(codec.getEncoding(), is(Encoding.CHAR));
     }
 
     @Test
