@@ -109,7 +109,7 @@ public final class IsoMessageDef {
         private static final String ATTR_EXTENDS = "extends";
         private static final String ATTR_TAG_ENCODING = "tag-encoding";
         private static final String ATTR_TAG_LENGTH = "tag-length";
-        private static final String ATTR_LENGTH_ENCODING = "tag-encoding";
+        private static final String ATTR_LENGTH_ENCODING = "length-encoding";
         private static final String ATTR_LENGTH = "length";
         private static final String ATTR_TRIM = "trim";
         private static final String ATTR_JUSTIFIED = "justified";
