@@ -18,12 +18,15 @@ package org.chiknrice.iso.codec;
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -37,7 +40,7 @@ public class NumericCodecTest {
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 1234);
         String encoded = new String(buf.array(), 0, 4, StandardCharsets.ISO_8859_1);
-        assertEquals("1234", encoded);
+        assertThat(encoded, is("1234"));
     }
 
     @Test
@@ -46,7 +49,7 @@ public class NumericCodecTest {
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 1234);
         String encoded = new String(buf.array(), 0, 9, StandardCharsets.ISO_8859_1);
-        assertEquals("000001234", encoded);
+        assertThat(encoded, is("000001234"));
     }
 
     @Test
@@ -55,9 +58,9 @@ public class NumericCodecTest {
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 12345);
         byte[] encoded = buf.array();
-        assertEquals(encoded[0], 0x01);
-        assertEquals(encoded[1], 0x23);
-        assertEquals(encoded[2], 0x45);
+        assertThat(encoded[0], is((byte) 0x01));
+        assertThat(encoded[1], is((byte) 0x23));
+        assertThat(encoded[2], is((byte) 0x45));
     }
 
     @Test
@@ -66,11 +69,11 @@ public class NumericCodecTest {
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 12345);
         byte[] encoded = buf.array();
-        assertEquals(encoded[0], 0x00);
-        assertEquals(encoded[1], 0x00);
-        assertEquals(encoded[2], 0x01);
-        assertEquals(encoded[3], 0x23);
-        assertEquals(encoded[4], 0x45);
+        assertThat(encoded[0], is((byte) 0x00));
+        assertThat(encoded[1], is((byte) 0x00));
+        assertThat(encoded[2], is((byte) 0x01));
+        assertThat(encoded[3], is((byte) 0x23));
+        assertThat(encoded[4], is((byte) 0x45));
     }
 
     @Test
@@ -79,11 +82,11 @@ public class NumericCodecTest {
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, 12345);
         byte[] encoded = buf.array();
-        assertEquals(encoded[0], 0x00);
-        assertEquals(encoded[1], 0x00);
-        assertEquals(encoded[2], 0x00);
-        assertEquals(encoded[3], 0x30);
-        assertEquals(encoded[4], 0x39);
+        assertThat(encoded[0], is((byte) 0x00));
+        assertThat(encoded[1], is((byte) 0x00));
+        assertThat(encoded[2], is((byte) 0x00));
+        assertThat(encoded[3], is((byte) 0x30));
+        assertThat(encoded[4], is((byte) 0x39));
     }
 
     @Test(expected = ConfigException.class)
@@ -97,14 +100,14 @@ public class NumericCodecTest {
         ByteBuffer buf = ByteBuffer.allocate(20);
         codec.encode(buf, Long.MAX_VALUE);
         byte[] encoded = buf.array();
-        assertEquals(encoded[0], (byte) 0x7F);
-        assertEquals(encoded[1], (byte) 0xFF);
-        assertEquals(encoded[2], (byte) 0xFF);
-        assertEquals(encoded[3], (byte) 0xFF);
-        assertEquals(encoded[4], (byte) 0xFF);
-        assertEquals(encoded[5], (byte) 0xFF);
-        assertEquals(encoded[6], (byte) 0xFF);
-        assertEquals(encoded[7], (byte) 0xFF);
+        assertThat(encoded[0], is((byte) 0x7F));
+        assertThat(encoded[1], is((byte) 0xFF));
+        assertThat(encoded[2], is((byte) 0xFF));
+        assertThat(encoded[3], is((byte) 0xFF));
+        assertThat(encoded[4], is((byte) 0xFF));
+        assertThat(encoded[5], is((byte) 0xFF));
+        assertThat(encoded[6], is((byte) 0xFF));
+        assertThat(encoded[7], is((byte) 0xFF));
     }
 
     @Test(expected = CodecException.class)
@@ -112,7 +115,7 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.BINARY, 8);
         ByteBuffer buf = ByteBuffer.allocate(20);
         BigInteger value = new BigInteger("8000000000000000", 16);
-        assertEquals(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.valueOf(1L)), value);
+        assertThat(value, is(BigInteger.valueOf(Long.MAX_VALUE).add(BigInteger.valueOf(1L))));
         codec.encode(buf, value);
     }
 
@@ -131,8 +134,8 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.CHAR);
         byte[] bytes = new byte[]{0x31, 0x32, 0x33};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Integer.class, decoded.getClass());
-        assertEquals("123", decoded.toString());
+        assertThat(decoded, is(instanceOf(Integer.class)));
+        assertThat(decoded.toString(), is("123"));
     }
 
     @Test
@@ -140,8 +143,8 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.CHAR);
         byte[] bytes = new byte[]{0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Long.class, decoded.getClass());
-        assertEquals("123123123123", decoded.toString());
+        assertThat(decoded, is(instanceOf(Long.class)));
+        assertThat(decoded.toString(), is("123123123123"));
     }
 
     @Test
@@ -150,8 +153,8 @@ public class NumericCodecTest {
         byte[] bytes = new byte[]{0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32,
                 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(BigInteger.class, decoded.getClass());
-        assertEquals("123123123123123123123123", decoded.toString());
+        assertThat(decoded, is(instanceOf(BigInteger.class)));
+        assertThat(decoded.toString(), is("123123123123123123123123"));
     }
 
     @Test
@@ -159,15 +162,20 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.CHAR, 2);
         byte[] bytes = new byte[]{0x31, 0x32, 0x33};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Integer.class, decoded.getClass());
-        assertEquals("12", decoded.toString());
+        assertThat(decoded, is(instanceOf(Integer.class)));
+        assertThat(decoded.toString(), is("12"));
     }
 
-    @Test(expected = CodecException.class)
+    @Test
     public void testDecodeInsufficientFixedLengthChar() {
         NumericCodec codec = new NumericCodec(Encoding.CHAR, 4);
         byte[] bytes = new byte[]{0x31, 0x32, 0x33};
-        codec.decode(ByteBuffer.wrap(bytes));
+        try {
+            codec.decode(ByteBuffer.wrap(bytes));
+            fail("Failure expected due to not enough bytes in buffer");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Expecting 4 bytes, only 3 remaining"));
+        }
     }
 
     @Test
@@ -175,8 +183,8 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.BCD);
         byte[] bytes = new byte[]{0x05, 0x43, 0x21};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Integer.class, decoded.getClass());
-        assertEquals("54321", decoded.toString());
+        assertThat(decoded, is(instanceOf(Integer.class)));
+        assertThat(decoded.toString(), is("54321"));
     }
 
     @Test
@@ -184,8 +192,8 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.BCD, 3);
         byte[] bytes = new byte[]{0x05, 0x43, 0x21};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Integer.class, decoded.getClass());
-        assertEquals("543", decoded.toString());
+        assertThat(decoded, is(instanceOf(Integer.class)));
+        assertThat(decoded.toString(), is("543"));
     }
 
     @Test
@@ -193,27 +201,32 @@ public class NumericCodecTest {
         NumericCodec codec = new NumericCodec(Encoding.BINARY, 3);
         byte[] bytes = new byte[]{0x05, 0x43, 0x21};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Long.class, decoded.getClass());
-        assertEquals(344865L, decoded);
+        assertThat(decoded, is(instanceOf(Long.class)));
+        assertThat(decoded, CoreMatchers.<Number>is(344865L));
     }
 
-    @Test(expected = CodecException.class)
+    @Test
     public void testDecodeExceedingLongBinary() {
         NumericCodec codec = new NumericCodec(Encoding.BINARY, 8);
         byte[] bytes = new byte[]{0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
                 (byte) 0xFF};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
-        assertEquals(Long.class, decoded.getClass());
-        assertEquals(Long.MAX_VALUE, decoded);
+        assertThat(decoded, is(instanceOf(Long.class)));
+        assertThat(decoded, CoreMatchers.<Number>is(Long.MAX_VALUE));
 
         bytes = new byte[]{(byte) 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-        codec.decode(ByteBuffer.wrap(bytes));
+        try {
+            codec.decode(ByteBuffer.wrap(bytes));
+            fail("Failure due to exceeding long type");
+        } catch (CodecException e) {
+            assertThat(e.getMessage(), is("Value exceeds long type 8000000000000000"));
+        }
     }
 
     @Test
     public void testGetEncoding() {
         NumericCodec codec = new NumericCodec(Encoding.BCD);
-        assertEquals(Encoding.BCD, codec.getEncoding());
+        assertThat(codec.getEncoding(), is(Encoding.BCD));
     }
 
     @Test

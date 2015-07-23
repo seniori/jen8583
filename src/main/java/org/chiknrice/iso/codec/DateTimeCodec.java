@@ -64,7 +64,7 @@ public class DateTimeCodec implements Codec<Date> {
         try {
             return format.parse(dateTimeString);
         } catch (ParseException e) {
-            throw new CodecException(e);
+            throw new CodecException(e.getMessage(), e);
         }
     }
 

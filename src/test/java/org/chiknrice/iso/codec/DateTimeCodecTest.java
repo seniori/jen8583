@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.TimeZone;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
@@ -45,7 +47,7 @@ public class DateTimeCodecTest {
         Date toEncode = sdf.parse("123456");
         codec.encode(buf, toEncode);
         byte[] bytes = buf.array();
-        assertTrue(Arrays.equals(new byte[]{0x12, 0x34, 0x56}, bytes));
+        assertThat(Arrays.equals(new byte[]{0x12, 0x34, 0x56}, bytes), is(true));
     }
 
     @Test
@@ -58,7 +60,7 @@ public class DateTimeCodecTest {
         Date toEncode = sdf.parse("123456");
         codec.encode(buf, toEncode);
         byte[] bytes = buf.array();
-        assertEquals("123456", new String(bytes, StandardCharsets.ISO_8859_1));
+        assertThat(new String(bytes, StandardCharsets.ISO_8859_1), is("123456"));
     }
 
     @Test
@@ -69,7 +71,7 @@ public class DateTimeCodecTest {
         Date decoded = codec.decode(ByteBuffer.wrap(bytes));
         SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
         sdf.setTimeZone(utc);
-        assertEquals("054321", sdf.format(decoded));
+        assertThat(sdf.format(decoded), is("054321"));
     }
 
     @Test
@@ -80,26 +82,37 @@ public class DateTimeCodecTest {
         Date decoded = codec.decode(ByteBuffer.wrap(bytes));
         SimpleDateFormat sdf = new SimpleDateFormat("hhmmss");
         sdf.setTimeZone(utc);
-        assertEquals("054321", sdf.format(decoded));
+        assertThat(sdf.format(decoded), is("054321"));
     }
 
-    @Test(expected = CodecException.class)
+    @Test
     public void testParseException() {
         TimeZone utc = TimeZone.getTimeZone("UTC");
         DateTimeCodec codec = new DateTimeCodec("hhmmss", utc, Encoding.BCD);
         byte[] bytes = new byte[]{0x60, 0x43, 0x21};
-        codec.decode(ByteBuffer.wrap(bytes));
+        try {
+            codec.decode(ByteBuffer.wrap(bytes));
+            fail("Failure expected due to unparsable date");
+        } catch (CodecException e) {
+            assertThat(e.getCause(), is(instanceOf(ParseException.class)));
+            assertThat(e.getMessage(), is("Unparseable date: \"604321\""));
+        }
     }
 
     @Test
     public void testGetEncoding() {
         DateTimeCodec codec = new DateTimeCodec("hhmmss", TimeZone.getDefault(), Encoding.BCD);
-        assertEquals(Encoding.BCD, codec.getEncoding());
+        assertThat(codec.getEncoding(), is(Encoding.BCD));
     }
 
-    @Test(expected = ConfigException.class)
+    @Test
     public void testInvalidEncoding() {
-        new DateTimeCodec("hhmmss", TimeZone.getDefault(), Encoding.BINARY);
+        try {
+            new DateTimeCodec("hhmmss", TimeZone.getDefault(), Encoding.BINARY);
+            fail("Failure expected due to unsupported encoding");
+        } catch (ConfigException e) {
+            assertThat(e.getMessage(), is("Unsupported encoding BINARY"));
+        }
     }
 
     @Test
