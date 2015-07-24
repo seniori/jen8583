@@ -78,7 +78,7 @@ public class BitmapCodec {
             bytes = new byte[total];
             buf.get(bytes);
         }
-        return new Bitmap(bytes);
+        return new Bitmap(bytes, type);
     }
 
     /**
@@ -156,18 +156,16 @@ public class BitmapCodec {
         }
 
         private final byte[] bytes;
+        private final Type type;
 
-        private Bitmap(byte[] bytes) {
+        private Bitmap(byte[] bytes, Type type) {
             this.bytes = bytes;
+            this.type = type;
         }
 
         public boolean isSet(int bit) {
             int byteIndex = byteIndex(bit);
-            if (byteIndex >= bytes.length) {
-                return false;
-            } else {
-                return (bytes[byteIndex] & mask(bit)) > 0;
-            }
+            return byteIndex < bytes.length && (bytes[byteIndex] & mask(bit)) > 0;
         }
 
         public void set(int bit) {
@@ -192,7 +190,7 @@ public class BitmapCodec {
 
         @Override
         public int hashCode() {
-            return Arrays.hashCode(bytes);
+            return Arrays.hashCode(bytes) ^ type.hashCode();
         }
 
         @Override
@@ -205,7 +203,7 @@ public class BitmapCodec {
                 return false;
             } else {
                 Bitmap other = (Bitmap) o;
-                return Arrays.equals(other.bytes, bytes);
+                return Arrays.equals(bytes, other.bytes) && type.equals(other.type);
             }
         }
     }

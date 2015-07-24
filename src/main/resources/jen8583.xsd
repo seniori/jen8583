@@ -26,17 +26,21 @@
         <complexType>
             <sequence>
                 <!-- The mandatory defaults section which defines defaults related to field definitions.
-                 Defaults are set to define the configuration convention (e.g. no tag-encoding specified
+                 Defaults are set to define the configuration convention (e.g. no length-encoding specified
                  defaults to  BCD) -->
                 <element name="defaults" minOccurs="1">
                     <complexType>
                         <sequence>
                             <element name="var" minOccurs="1">
                                 <complexType>
-                                    <!-- Default encoding of tag for TLV fields -->
-                                    <attribute name="tag-encoding" type="tns:numeric-encoding" use="required"/>
-                                    <!-- Default encoding of length for TLV fields and length prefixes of variable length fields -->
+                                    <!-- Default encoding of length prefixes of variable length fields -->
                                     <attribute name="length-encoding" type="tns:numeric-encoding" use="required"/>
+                                </complexType>
+                            </element>
+                            <element name="tlv" minOccurs="1">
+                                <complexType>
+                                    <attribute name="tag-encoding" type="tns:tag-length-encoding" use="required"/>
+                                    <attribute name="length-encoding" type="tns:tag-length-encoding" use="required"/>
                                 </complexType>
                             </element>
                             <element name="alpha" minOccurs="1">
@@ -100,7 +104,7 @@
                     </complexType>
                 </element>
 
-                <!-- Encoding of the ISO message bitmap.  Bitmaps of sub fields can be defined in var-fields -->
+                <!-- Encoding of the ISO message bitmap.  Bitmaps of sub fields can be defined in bitmap-fields -->
                 <element name="msg-bitmap" minOccurs="1">
                     <complexType>
                         <attribute name="type" type="tns:bitmap-type" use="required"/>
@@ -116,20 +120,38 @@
         </complexType>
     </element>
 
-    <!-- Defines a variable length composite field.  Composite contains at least 1 sub fields and variable length
-     composite fields can have optional sub fields -->
+    <!-- Defines a variable length composite field. As var-fields are flexible, it can only be used under a flexible
+    composite component so an optional attribute is needed. -->
     <complexType name="var-fields">
         <complexContent>
-            <extension base="tns:root-fields">
-                <attributeGroup ref="tns:optional-member"/>
-                <attribute name="length" type="int" use="required"/>
+            <extension base="tns:bitmapped-fields">
                 <attributeGroup ref="tns:variable-length"/>
+                <attributeGroup ref="tns:optional-member"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <!-- Defines a bitmapped composite field.  This layer is shared by var-fields and composite-tlv-value.  It is refactored
+     since tlv defines its own way of encoding/decoding length-->
+    <complexType abstract="true" name="bitmapped-fields">
+        <complexContent>
+            <extension base="tns:root-fields">
                 <attribute name="bitmap-type" type="tns:bitmap-type" use="optional" default="HEX"/>
             </extension>
         </complexContent>
     </complexType>
 
-    <!-- Defines the ISO message structure -->
+    <!-- Defines bitmampped components for use in a TLV context -->
+    <complexType name="composite-tlv-value">
+        <complexContent>
+            <extension base="tns:bitmapped-fields">
+                <attributeGroup ref="tns:tlv-member"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <!-- Defines the ISO message structure, the root composite component defines bitmap type globally so no attribute
+    needed here -->
     <complexType name="message">
         <complexContent>
             <extension base="tns:root-fields">
@@ -187,6 +209,7 @@
             <element name="custom-var" type="tns:custom-var"/>
             <element name="composite" type="tns:fixed-fields-optional"/>
             <element name="composite-var" type="tns:var-fields"/>
+            <element name="composite-tlv" type="tns:composite-tlv"/>
         </choice>
     </complexType>
 
@@ -202,7 +225,7 @@
 
     <!-- Defines the structure for composite field which has fixed length.  The sub fields doesn't include their "-var"
     counterparts and all sub fields are mandatory so indexes are not needed to be specified.  The indexes of all sub fields
-     are sequential and starts with 1 (as oppose to message fields which has starts with 2 since bitmaps are field 1) -->
+     are sequential and starts with 1 -->
     <complexType name="fixed-fields">
         <choice minOccurs="1" maxOccurs="unbounded">
             <element name="alpha" type="tns:alpha-fixed"/>
@@ -214,29 +237,36 @@
         </choice>
     </complexType>
 
-    <!-- Defines text fields which are not really limited to alpha/numeric.  Characters under ISO 8859-1 are supported.
+    <!-- All TLV are having the same tag and length encoding however tag byte count and length prefix byte count are
+    determined by the rules of BER or others so VarCodec cannot be applied to the codecs of the elements.  Also, all
+    elements are var-length length related attributes -->
+    <complexType name="composite-tlv">
+        <choice minOccurs="1" maxOccurs="unbounded">
+            <element name="alpha" type="tns:alpha-tlv-value"/>
+            <element name="numeric" type="tns:numeric-tlv-value"/>
+            <element name="binary" type="tns:binary-tlv-value"/>
+            <element name="composite" type="tns:composite-tlv-value"/>
+            <element name="custom" type="tns:custom-tlv-value"/>
+            <element name="composite-tlv" type="tns:composite-tlv"/>
+        </choice>
+        <attribute name="tag-encoding" type="tns:tag-length-encoding" use="optional" default="BINARY"/>
+        <attribute name="length-encoding" type="tns:tag-length-encoding" use="optional" default="BINARY"/>
+    </complexType>
+
+    <!-- Defines text fields (which are not really limited to alpha/numeric).  Characters under ISO 8859-1 are supported.
      This type is abstract and is the base for all alpha fields -->
     <complexType name="alpha" abstract="true">
-        <attribute name="length" type="int" use="required"/>
         <!-- Defines trim rule when decoding a string.  Even variable length strings can have padding which would be
         trimmed out if this is set to true -->
         <attribute name="trim" type="boolean" use="optional" default="true"/>
-    </complexType>
-
-    <!-- Defines variable length text fields -->
-    <complexType name="alpha-var">
-        <complexContent>
-            <extension base="tns:alpha">
-                <attributeGroup ref="tns:variable-length"/>
-                <attributeGroup ref="tns:optional-member"/>
-            </extension>
-        </complexContent>
     </complexType>
 
     <!-- Defines fixed length text fields -->
     <complexType name="alpha-fixed">
         <complexContent>
             <extension base="tns:alpha">
+                <!-- Fixed length -->
+                <attribute name="length" type="int" use="required"/>
                 <!-- Allowed values are "LEFT" or "RIGHT" -->
                 <attribute name="justified" type="tns:justified-type" use="optional" default="LEFT"/>
             </extension>
@@ -252,10 +282,45 @@
         </complexContent>
     </complexType>
 
+    <!-- Defines tlv text values-->
+    <complexType name="alpha-tlv-value">
+        <complexContent>
+            <extension base="tns:alpha">
+                <attributeGroup ref="tns:tlv-member"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <!-- Defines variable length text fields -->
+    <complexType name="alpha-var">
+        <complexContent>
+            <extension base="tns:alpha">
+                <attributeGroup ref="tns:variable-length"/>
+                <attributeGroup ref="tns:optional-member"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="numeric" abstract="true">
+        <attribute name="encoding" type="tns:numeric-encoding" use="optional" default="CHAR"/>
+    </complexType>
+
+    <!-- Defines tlv text values-->
+    <complexType name="numeric-tlv-value">
+        <complexContent>
+            <extension base="tns:numeric">
+                <attributeGroup ref="tns:tlv-member"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
     <!-- Defines fixed length numeric fields -->
     <complexType name="numeric-fixed">
-        <attribute name="length" type="int" use="required"/>
-        <attribute name="encoding" type="tns:numeric-encoding" use="optional" default="CHAR"/>
+        <complexContent>
+            <extension base="tns:numeric">
+                <attribute name="length" type="int" use="required"/>
+            </extension>
+        </complexContent>
     </complexType>
 
     <!-- Defines fixed numeric fields which are used under variable length composite fields -->
@@ -270,8 +335,9 @@
     <!-- Defines variable length numeric fields -->
     <complexType name="numeric-var">
         <complexContent>
-            <extension base="tns:numeric-fixed-optional">
+            <extension base="tns:numeric">
                 <attributeGroup ref="tns:variable-length"/>
+                <attributeGroup ref="tns:optional-member"/>
             </extension>
         </complexContent>
     </complexType>
@@ -308,15 +374,17 @@
 
     <!-- Defines variable length binary fields-->
     <complexType name="binary-var">
-        <complexContent>
-            <extension base="tns:binary-fixed-optional">
-                <attributeGroup ref="tns:variable-length"/>
-            </extension>
-        </complexContent>
+        <attributeGroup ref="tns:variable-length"/>
+        <attributeGroup ref="tns:optional-member"/>
     </complexType>
 
-    <!-- Defines fixed length custom fields which specifies its valueCodec (implementation of CustomCodec) -->
-    <complexType name="custom-fixed">
+    <!-- Defines binary tlv values-->
+    <complexType name="binary-tlv-value">
+        <attributeGroup ref="tns:tlv-member"/>
+    </complexType>
+
+    <!-- Defines fixed length custom fields which specifies its codec (implementation of CustomCodec) -->
+    <complexType name="custom" abstract="true">
         <sequence>
             <element name="param" minOccurs="0" maxOccurs="unbounded">
                 <complexType>
@@ -325,8 +393,16 @@
                 </complexType>
             </element>
         </sequence>
-        <attribute name="length" type="int" use="required"/>
         <attribute name="codec" type="token" use="required"/>
+    </complexType>
+
+    <!-- Defines fixed length custom fields used under fixed length composite fields -->
+    <complexType name="custom-fixed">
+        <complexContent>
+            <extension base="tns:custom">
+                <attribute name="length" type="int" use="required"/>
+            </extension>
+        </complexContent>
     </complexType>
 
     <!-- Defines fixed length custom fields used under variable length composite fields -->
@@ -341,8 +417,18 @@
     <!-- Defines variable length custom fields -->
     <complexType name="custom-var">
         <complexContent>
-            <extension base="tns:custom-fixed-optional">
+            <extension base="tns:custom">
                 <attributeGroup ref="tns:variable-length"/>
+                <attributeGroup ref="tns:optional-member"/>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <!-- Defines custom tlv values -->
+    <complexType name="custom-tlv-value">
+        <complexContent>
+            <extension base="tns:custom">
+                <attributeGroup ref="tns:tlv-member"/>
             </extension>
         </complexContent>
     </complexType>
@@ -353,35 +439,41 @@
         <attribute name="mandatory" type="boolean" use="optional" default="false"/>
     </attributeGroup>
 
-    <!-- Defines attributes common to all variable length fields (as well as TLVs) -->
+    <!-- Defines attributes common to tlv members -->
+    <attributeGroup name="tlv-member">
+        <attribute name="tag" type="int" use="required"/>
+        <attribute name="mandatory" type="boolean" use="optional" default="false"/>
+    </attributeGroup>
+
+    <!-- Defines attributes common to all variable length fields -->
     <attributeGroup name="variable-length">
-        <attribute name="tag-length" type="int" use="optional" default="2"/>
-        <attribute name="tag-encoding" type="tns:numeric-encoding" use="optional" default="BCD"/>
+        <!-- Length digits -->
+        <attribute name="length-digits" type="int" use="required"/>
         <attribute name="length-encoding" type="tns:numeric-encoding" use="optional" default="BCD"/>
     </attributeGroup>
 
     <!-- Defines allowed encodings for numeric fields -->
     <simpleType name="numeric-encoding">
         <restriction base="token">
-            <enumeration value="CHAR"></enumeration>
-            <enumeration value="BINARY"></enumeration>
-            <enumeration value="BCD"></enumeration>
+            <enumeration value="CHAR"/>
+            <enumeration value="BINARY"/>
+            <enumeration value="BCD"/>
         </restriction>
     </simpleType>
 
     <!-- Defines allowed encodings for date fields -->
     <simpleType name="date-encoding">
         <restriction base="token">
-            <enumeration value="CHAR"></enumeration>
-            <enumeration value="BCD"></enumeration>
+            <enumeration value="CHAR"/>
+            <enumeration value="BCD"/>
         </restriction>
     </simpleType>
 
     <!-- Defines allowed encodings for mti -->
     <simpleType name="mti-encoding">
         <restriction base="token">
-            <enumeration value="CHAR"></enumeration>
-            <enumeration value="BCD"></enumeration>
+            <enumeration value="CHAR"/>
+            <enumeration value="BCD"/>
         </restriction>
     </simpleType>
 
@@ -391,6 +483,14 @@
             <enumeration value="BINARY"/>
             <enumeration value="HEX"/>
             <enumeration value="COMPRESSED"/>
+        </restriction>
+    </simpleType>
+
+    <!-- Defines allowed encodings for tag and length components of a tlv -->
+    <simpleType name="tag-length-encoding">
+        <restriction base="token">
+            <enumeration value="CHAR"/>
+            <enumeration value="BINARY"/>
         </restriction>
     </simpleType>
 

@@ -3,7 +3,7 @@
      xsi:schemaLocation="http://www.chiknrice.org/jen8583 ../../main/resources/jen8583.xsd">
 
     <defaults>
-        <var tag-encoding="CHAR" length-encoding="CHAR"/>
+        <var length-encoding="CHAR"/>
         <alpha justified="LEFT" trim="true"/>
         <numeric encoding="CHAR"/>
         <date timezone="SYSTEM" encoding="CHAR"/>

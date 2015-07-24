@@ -42,7 +42,6 @@ public class IsoMessageDefTest {
         Map<Integer, ComponentDef> def110Components = def110.getSubComponentDefs();
 
         assertTrue(def100Components.get(5) instanceof CompositeDef);
-        assertNotNull(def110Components.get(5).getLengthCodec());
 
         CompositeDef codec100_5 = (CompositeDef) def100Components.get(5);
         CompositeDef codec110_5 = (CompositeDef) def110Components.get(5);
@@ -61,7 +60,7 @@ public class IsoMessageDefTest {
         assertTrue(codec110_6.getSubComponentDefs().get(3) != null);
         assertNotEquals(codec100_6.getSubComponentDefs().get(2), codec110_6.getSubComponentDefs().get(2));
         assertEquals(codec100_6.getSubComponentDefs().get(3), codec110_6.getSubComponentDefs().get(3));
-        assertTrue(codec110_6.getSubComponentDefs().get(2).getValueCodec() instanceof NumericCodec);
+        assertTrue(codec110_6.getSubComponentDefs().get(2).getCodec() instanceof NumericCodec);
 
         assertTrue(def100Components.get(4) != null);
         assertTrue(def110Components.get(4) == null);

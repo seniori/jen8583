@@ -3,7 +3,7 @@
      xsi:schemaLocation="http://www.chiknrice.org/jen8583 ../../main/resources/jen8583.xsd">
 
     <defaults>
-        <var tag-encoding="CHAR" length-encoding="CHAR"/>
+        <var length-encoding="CHAR"/>
         <alpha justified="LEFT" trim="true"/>
         <numeric encoding="CHAR"/>
         <date timezone="SYSTEM" encoding="CHAR"/>
@@ -15,7 +15,7 @@
     <msg-bitmap type="BINARY"/>
 
     <message mti="0200">
-        <alpha-var index="2" length="2"/>
+        <alpha-var index="2" length-digits="2"/>
         <numeric index="3" length="6" mandatory="false"/>
         <numeric index="4" length="12"/>
         <date index="7" format="MMddHHmmss" timezone="UTC"/>

@@ -54,7 +54,7 @@ public class IsoMessageCodec {
         ByteBuffer buf = ByteBuffer.wrap(isoBytes);
         Map<Integer, Object> header = null;
         if (config.getHeaderDef() != null) {
-            header = config.getHeaderDef().decode(buf);
+            header = config.getHeaderDef().getCodec().decode(buf);
         }
         Integer mti = config.getMtiCodec().decode(buf).intValue();
         IsoMessage m = new IsoMessage(mti);
@@ -65,7 +65,7 @@ public class IsoMessageCodec {
         CompositeDef fieldsDef = config.getFieldsDef().get(mti);
 
         if (fieldsDef != null) {
-            Map<Integer, Object> fields = fieldsDef.decode(buf);
+            Map<Integer, Object> fields = fieldsDef.getCodec().decode(buf);
             for (Entry<Integer, Object> field : fields.entrySet()) {
                 m.setField(field.getKey(), field.getValue());
             }
@@ -85,14 +85,14 @@ public class IsoMessageCodec {
         // TODO: use buffer pool
         ByteBuffer buf = ByteBuffer.allocate(0x7FFF);
         if (config.getHeaderDef() != null) {
-            config.getHeaderDef().encode(buf, msg.getHeader());
+            config.getHeaderDef().getCodec().encode(buf, msg.getHeader());
         }
         config.getMtiCodec().encode(buf, msg.getMti().longValue());
 
         CompositeDef fieldsDef = config.getFieldsDef().get(msg.getMti());
 
         if (fieldsDef != null) {
-            fieldsDef.encode(buf, msg.getFields());
+            fieldsDef.getCodec().encode(buf, msg.getFields());
             byte[] encoded = new byte[buf.position()];
             System.arraycopy(buf.array(), 0, encoded, 0, encoded.length);
             return encoded;

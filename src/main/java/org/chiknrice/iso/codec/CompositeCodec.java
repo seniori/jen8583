@@ -14,15 +14,23 @@
  *
  */
 
-package org.chiknrice.iso.config;
+package org.chiknrice.iso.codec;
+
+import org.chiknrice.iso.config.ComponentDef;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.SortedMap;
 
 /**
- * Encode:
+ * Composite codecs are raw/binary codecs which encodes/decodes sub fields
  *
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public class CompositeDefTest {
+public interface CompositeCodec {
 
+    Map<Integer, Object> decode(ByteBuffer buf, SortedMap<Integer, ComponentDef> subComponentDefs);
 
+    void encode(ByteBuffer buf, Map<Integer, Object> values, SortedMap<Integer, ComponentDef> subComponentDefs);
 
 }

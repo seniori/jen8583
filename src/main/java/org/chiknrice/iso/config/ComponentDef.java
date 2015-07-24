@@ -29,55 +29,27 @@ import java.util.Map.Entry;
 @SuppressWarnings("rawtypes")
 public class ComponentDef {
 
-    private final Codec valueCodec;
-    private final Codec<Number> lengthCodec;
-    private final Codec<Number> tagCodec;
+    private final Codec codec;
     private final boolean mandatory;
 
     protected CompositeDef parent;
 
-    public ComponentDef(Codec valueCodec) {
-        this(valueCodec, true);
+    public ComponentDef(Codec codec) {
+        this(codec, true);
     }
 
-    public ComponentDef(Codec valueCodec, boolean mandatory) {
-        this(null, null, valueCodec, mandatory);
-    }
-
-    public ComponentDef(Codec<Number> lengthCodec, Codec valueCodec) {
-        this(lengthCodec, valueCodec, true);
-    }
-
-    public ComponentDef(Codec<Number> lengthCodec, Codec valueCodec, boolean mandatory) {
-        this(null, lengthCodec, valueCodec, mandatory);
-    }
-
-    public ComponentDef(Codec<Number> tagCodec, Codec<Number> lengthCodec, Codec valueCodec) {
-        this(tagCodec, lengthCodec, valueCodec, true);
-    }
-
-    public ComponentDef(Codec<Number> tagCodec, Codec<Number> lengthCodec, Codec valueCodec, boolean mandatory) {
-        this.tagCodec = tagCodec;
-        this.lengthCodec = lengthCodec;
-        this.valueCodec = valueCodec;
+    public ComponentDef(Codec codec, boolean mandatory) {
+        this.codec = codec;
         this.mandatory = mandatory;
 
-        if (valueCodec instanceof CompositeDef) {
+        if (codec instanceof CompositeDef) {
             throw new ConfigException(String
-                    .format("%s shouldn't be used as valueCodec", CompositeDef.class.getSimpleName()));
+                    .format("%s shouldn't be used as codec", CompositeDef.class.getSimpleName()));
         }
     }
 
-    public Codec<Number> getTagCodec() {
-        return tagCodec;
-    }
-
-    public Codec<Number> getLengthCodec() {
-        return lengthCodec;
-    }
-
-    public Codec getValueCodec() {
-        return valueCodec;
+    public Codec getCodec() {
+        return codec;
     }
 
     public boolean isMandatory() {
@@ -113,7 +85,7 @@ public class ComponentDef {
 
     @Override
     public int hashCode() {
-        return Hash.build(this, valueCodec, mandatory);
+        return Hash.build(this, codec, mandatory);
     }
 
     @Override
@@ -126,8 +98,7 @@ public class ComponentDef {
             return false;
         } else {
             ComponentDef other = (ComponentDef) o;
-            return EqualsBuilder.newInstance(other.tagCodec, tagCodec).append(other.lengthCodec, lengthCodec)
-                    .append(other.valueCodec, valueCodec).append(other.mandatory, mandatory).isEqual();
+            return EqualsBuilder.newInstance(other.codec, codec).append(other.mandatory, mandatory).isEqual();
         }
     }
 

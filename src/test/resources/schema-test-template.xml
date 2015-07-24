@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 Ian Bondoc
+  ~
+  ~ This file is part of Jen8583
+  ~
+  ~ Jen8583 is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation, either version 3 of the License, or(at your option) any later version.
+  ~
+  ~ Jen8583 is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  ~ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with this program. If not, see
+  ~ <http://www.gnu.org/licenses/>.
+  ~
+  -->
+
+<iso xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.chiknrice.org/jen8583"
+     xsi:schemaLocation="http://www.chiknrice.org/jen8583">
+
+    <defaults>
+        <var length-encoding="CHAR"/>
+        <tlv tag-encoding="BINARY" length-encoding="BINARY"/>
+        <alpha justified="LEFT" trim="true"/>
+        <numeric encoding="CHAR"/>
+        <date timezone="SYSTEM" encoding="CHAR"/>
+        <ordinality mandatory="true"/>
+    </defaults>
+
+    <mti-encoding type="CHAR"/>
+
+    <msg-bitmap type="BINARY"/>
+
+    <message mti="0100">
+
+    </message>
+
+</iso>
+    
+    
+    

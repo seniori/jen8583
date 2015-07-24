@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
+@SuppressWarnings("unchecked")
 public class CustomCodecAdapter implements Codec<Object> {
 
     private final CustomCodec customCodec;

@@ -16,225 +16,90 @@
 
 package org.chiknrice.iso.config;
 
-import org.chiknrice.iso.CodecException;
-import org.chiknrice.iso.ConfigException;
-import org.chiknrice.iso.codec.BitmapCodec;
 import org.chiknrice.iso.codec.Codec;
+import org.chiknrice.iso.codec.CompositeCodec;
+import org.chiknrice.iso.codec.VarCodec;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.TreeMap;
-
-import static java.lang.String.format;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
-public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Object>> {
+public class CompositeDef extends ComponentDef {
 
     private final SortedMap<Integer, ComponentDef> subComponentDefs;
-    private final BitmapCodec bitmapCodec;
+    private final CompositeCodec compositeCodec;
+    private final Codec<Number> lengthCodec;
 
-    public CompositeDef(SortedMap<Integer, ComponentDef> subComponentDefs) {
-        this(subComponentDefs, null);
+    private final Codec<Map<Integer, Object>> codec;
+
+    public CompositeDef(final SortedMap<Integer, ComponentDef> subComponentDefs, final CompositeCodec compositeCodec) {
+        this(subComponentDefs, compositeCodec, true, null);
     }
 
-    public CompositeDef(SortedMap<Integer, ComponentDef> subComponentDefs, BitmapCodec bitmapCodec) {
-        this(subComponentDefs, bitmapCodec, null, null, true);
+    public CompositeDef(final SortedMap<Integer, ComponentDef> subComponentDefs, final CompositeCodec compositeCodec, final boolean mandatory) {
+        this(subComponentDefs, compositeCodec, mandatory, null);
     }
 
-    public CompositeDef(SortedMap<Integer, ComponentDef> subComponentDefs, BitmapCodec bitmapCodec, Codec<Number> tagCodec, Codec<Number> lengthCodec, boolean mandatory) {
-        super(tagCodec, lengthCodec, null, mandatory);
+    public CompositeDef(final SortedMap<Integer, ComponentDef> subComponentDefs, final CompositeCodec compositeCodec, final boolean mandatory, final Codec<Number> lengthCodec) {
+        super(null, mandatory);
+
         this.subComponentDefs = subComponentDefs;
-        this.bitmapCodec = bitmapCodec;
+        this.compositeCodec = compositeCodec;
+        this.lengthCodec = lengthCodec;
 
-        if (bitmapCodec != null && subComponentDefs.containsKey(1)) {
-            throw new ConfigException("Composite components with bitmap cannot have sub field index 1");
+        Codec<Map<Integer, Object>> codec = new Codec<Map<Integer, Object>>() {
+            @Override
+            public Map<Integer, Object> decode(ByteBuffer buf) {
+                return getCompositeCodec().decode(buf, getSubComponentDefs());
+            }
+
+            @Override
+            public void encode(ByteBuffer buf, Map<Integer, Object> value) {
+                getCompositeCodec().encode(buf, value, getSubComponentDefs());
+            }
+
+            @Override
+            public Encoding getEncoding() {
+                return Encoding.BINARY;
+            }
+        };
+
+        if (lengthCodec != null) {
+            codec = new VarCodec<>(lengthCodec, codec);
         }
 
-        if (subComponentDefs == null || subComponentDefs.size() == 0) {
-            throw new ConfigException("Composite components should have at least 1 sub field");
-        }
+        this.codec = codec;
 
         for (ComponentDef subComponentDef : subComponentDefs.values()) {
             subComponentDef.parent = this;
         }
     }
 
-    public Map<Integer, Object> decode(ByteBuffer buf) {
-        BitmapCodec.Bitmap bitmap;
-        try {
-            bitmap = bitmapCodec != null ? bitmapCodec.decode(buf) : null;
-        } catch (Exception e) {
-            throw new CodecException(format("Failed to decode bitmap for %s", this), e);
-        }
-
-        Map<Integer, Object> values = new TreeMap<>();
-        for (int i = bitmap == null ? 1 : 2; i <= 128; i++) {
-            Integer index = i;
-            ComponentDef def = subComponentDefs.get(index);
-
-            if (def == null) {
-                // no bitmap expects all sequential definitions to exist
-                if (bitmap == null) {
-                    // TODO: fix TLV decoding - this would definitely fail as TLV cannot be expected to be sorted
-                    if (subComponentDefs.lastKey() > index) {
-                        throw new CodecException(format("Missing configuration for %s%d", (this.parent != null ? this
-                                .toString().concat(".") : ""), index));
-                    } else {
-                        break;
-                    }
-                    // expecting component as bit is set
-                } else if (bitmap.isSet(index)) {
-                    throw new CodecException(format("Missing configuration for %s%d", (this.parent != null ? this
-                            .toString().concat(".") : ""), index));
-                } else {
-                    // bit is just not set
-                    continue;
-                }
-            }
-
-            Codec<Number> tagCodec = def.getTagCodec();
-            Codec<Number> lengthCodec = def.getLengthCodec();
-            Codec valueCodec = def.getValueCodec();
-
-            if (bitmap != null && !bitmap.isSet(index)) {
-                if (def.isMandatory()) {
-                    throw new CodecException(format("Missing mandatory component %s", def));
-                }
-                continue;
-            }
-
-            Object value;
-            try {
-                if (tagCodec != null) {
-                    // nothing to do with a tag yet
-                    Integer tag = tagCodec.decode(buf).intValue();
-                    if (!index.equals(tag)) {
-                        throw new CodecException(format("Unexpected TLV tag %d when decoding %s", tag, def));
-                    }
-                }
-
-                ByteBuffer valueBuf;
-                if (lengthCodec != null) {
-                    int varLength = lengthCodec.decode(buf).intValue();
-                    int limit = valueCodec.getEncoding() == Encoding.BCD ? varLength / 2 + varLength % 2 : varLength;
-                    valueBuf = buf.slice();
-                    valueBuf.limit(limit);
-                    buf.position(buf.position() + limit);
-                } else {
-                    valueBuf = buf;
-                }
-
-                value = valueCodec.decode(valueBuf);
-
-            } catch (CodecException e) {
-                throw new CodecException(format("Failed to decode %s", def), e);
-            }
-
-            if (value == null && def.isMandatory()) {
-                throw new CodecException(format("Missing mandatory component %s", def));
-            }
-
-            values.put(index, value);
-
-        }
-
-        return values;
+    CompositeCodec getCompositeCodec() {
+        return compositeCodec;
     }
 
-    @SuppressWarnings("unchecked")
-    public void encode(ByteBuffer buf, Map<Integer, Object> values) {
-        if (bitmapCodec != null) {
-            try {
-                bitmapCodec.encode(buf, values.keySet());
-            } catch (Exception e) {
-                throw new CodecException(format("Failed to encode bitmap for %s", this), e);
-            }
-        }
-        Map<Integer, Object> tempMap = new HashMap<>(values);
-        for (Map.Entry<Integer, ComponentDef> defEntry : subComponentDefs.entrySet()) {
-            Integer index = defEntry.getKey();
-            ComponentDef def = defEntry.getValue();
-            Object value = tempMap.remove(index);
-            Codec<Number> tagCodec = def.getTagCodec();
-            Codec<Number> lengthCodec = def.getLengthCodec();
-            Codec valueCodec = def.getValueCodec();
-
-            if (value == null) {
-                if (def.isMandatory()) {
-                    throw new CodecException(format("Missing mandatory component %s", def));
-                } else {
-                    continue;
-                }
-            }
-
-            try {
-                if (tagCodec != null) {
-                    // nothing to do with a codec yet
-                    tagCodec.encode(buf, index);
-                }
-
-                ByteBuffer valueBuf;
-                if (lengthCodec != null) {
-                    buf.mark();
-                    // this is just to consume part of the buffer which would later be filled with correct length data
-                    lengthCodec.encode(buf, 0);
-                    valueBuf = buf.slice();
-                } else {
-                    valueBuf = buf;
-                }
-
-                valueCodec.encode(valueBuf, value);
-
-                if (lengthCodec != null) {
-                    int endPos = buf.position() + valueBuf.position();
-                    buf.reset();
-                    int valueLength;
-                    if (Encoding.BINARY == valueCodec.getEncoding()) {
-                        valueLength = valueBuf.position();
-                    } else {
-                        valueLength = value.toString().length();
-                    }
-                    lengthCodec.encode(buf, valueLength);
-                    buf.position(endPos);
-                }
-            } catch (Exception e) {
-                throw new CodecException(format("Failed to encode %s", def), e);
-            }
-        }
-
-        if (tempMap.size() > 0) {
-            throw new CodecException(format("Unexpected component(s) %s while encoding %s", tempMap, this.toString()
-                    .isEmpty() ? "message" : this));
-        }
-    }
-
-    @Override
-    public Encoding getEncoding() {
-        return Encoding.BINARY;
+    Codec<Number> getLengthCodec() {
+        return lengthCodec;
     }
 
     public SortedMap<Integer, ComponentDef> getSubComponentDefs() {
         return subComponentDefs;
     }
 
-    public BitmapCodec getBitmapCodec() {
-        return bitmapCodec;
-    }
-
     @Override
-    public Codec getValueCodec() {
-        return this;
+    public Codec<Map<Integer, Object>> getCodec() {
+        return codec;
     }
 
     @Override
     public int hashCode() {
-        return Hash.build(this, subComponentDefs, bitmapCodec, super.hashCode());
+        return Hash.build(this, subComponentDefs, compositeCodec, lengthCodec, isMandatory(), super.hashCode());
     }
 
     @Override
@@ -248,7 +113,13 @@ public class CompositeDef extends ComponentDef implements Codec<Map<Integer, Obj
         } else {
             CompositeDef other = (CompositeDef) o;
             return EqualsBuilder.newInstance(other.subComponentDefs, subComponentDefs)
-                    .append(other.bitmapCodec, bitmapCodec).isEqual() && super.equals(o);
+                    .append(other.compositeCodec, compositeCodec).append(other.lengthCodec, lengthCodec)
+                    .append(other.isMandatory(), isMandatory()).isEqual();
         }
     }
+
+    public CompositeDef clone(SortedMap<Integer, ComponentDef> subComponentDefs) {
+        return new CompositeDef(subComponentDefs, compositeCodec, this.isMandatory(), lengthCodec);
+    }
+
 }
