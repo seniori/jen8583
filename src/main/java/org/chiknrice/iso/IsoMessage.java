@@ -15,10 +15,14 @@
  */
 package org.chiknrice.iso;
 
+import org.chiknrice.iso.util.Hex;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.lang.String.format;
 
 /**
  * The main class which represents the structure of an ISO8583 message. Fields and header components are structured as a
@@ -113,8 +117,7 @@ public class IsoMessage {
         Pattern p = Pattern.compile("\\d+(\\.\\d+)+");
         Matcher m = p.matcher(recursiveExpression);
         if (!m.matches()) {
-            throw new IllegalArgumentException(String.format("%s is not a valid iso field expression",
-                    recursiveExpression));
+            throw new IllegalArgumentException(format("%s is not a valid iso field expression", recursiveExpression));
         } else {
             String[] indexes = recursiveExpression.split("\\.");
             Object subField = fields.get(Integer.valueOf(indexes[0]));
@@ -182,8 +185,7 @@ public class IsoMessage {
         Pattern p = Pattern.compile("\\d+(\\.\\d+)+");
         Matcher m = p.matcher(recursiveExpression);
         if (!m.matches()) {
-            throw new IllegalArgumentException(String.format("%s is not a valid iso field expression",
-                    recursiveExpression));
+            throw new IllegalArgumentException(format("%s is not a valid iso field expression", recursiveExpression));
         } else {
             String[] indexes = recursiveExpression.split("\\.");
 
@@ -260,7 +262,11 @@ public class IsoMessage {
                 sb.append('+').append(System.lineSeparator());
                 appendFields((Map<?, ?>) value, sb, level + 1);
             } else {
-                sb.append(' ').append(value).append(System.lineSeparator());
+                if (value instanceof byte[]) {
+                    sb.append(" 0x").append(Hex.encode((byte[]) value)).append(System.lineSeparator());
+                } else {
+                    sb.append(' ').append(value).append(System.lineSeparator());
+                }
             }
         }
     }
