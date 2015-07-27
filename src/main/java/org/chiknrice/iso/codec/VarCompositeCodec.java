@@ -20,6 +20,8 @@ import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.config.ComponentDef;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -32,16 +34,16 @@ import static java.lang.String.format;
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
 @SuppressWarnings("unchecked")
-public class FlexiCompositeCodec implements CompositeCodec {
+public class VarCompositeCodec implements CompositeCodec {
+
+    private static final Logger LOG = LoggerFactory.getLogger(VarCompositeCodec.class);
 
     private final BitmapCodec bitmapCodec;
+    private final boolean failFast;
 
-    public FlexiCompositeCodec() {
-        this(null);
-    }
-
-    public FlexiCompositeCodec(BitmapCodec bitmapCodec) {
+    public VarCompositeCodec(BitmapCodec bitmapCodec, boolean failFast) {
         this.bitmapCodec = bitmapCodec;
+        this.failFast = failFast;
     }
 
 
@@ -78,7 +80,11 @@ public class FlexiCompositeCodec implements CompositeCodec {
                 Object value = def.getCodec().decode(buf);
 
                 if (value == null && def.isMandatory()) {
-                    throw new CodecException(format("Missing mandatory component %s", def));
+                    if (failFast) {
+                        throw new CodecException(format("Missing mandatory component %s", def));
+                    } else {
+                        LOG.warn("Missing mandatory component {}", def);
+                    }
                 }
 
                 values.put(index, value);
@@ -107,10 +113,13 @@ public class FlexiCompositeCodec implements CompositeCodec {
 
             if (value == null) {
                 if (def.isMandatory()) {
-                    throw new CodecException(format("Missing mandatory component %s", def));
-                } else {
-                    continue;
+                    if (failFast) {
+                        throw new CodecException(format("Missing mandatory component %s", def));
+                    } else {
+                        LOG.warn("Missing mandatory component {}", def);
+                    }
                 }
+                continue;
             }
 
             try {
@@ -139,8 +148,8 @@ public class FlexiCompositeCodec implements CompositeCodec {
         } else if (o.getClass() != getClass()) {
             return false;
         } else {
-            FlexiCompositeCodec other = (FlexiCompositeCodec) o;
-            return EqualsBuilder.newInstance(other.bitmapCodec, bitmapCodec).isEqual();
+            VarCompositeCodec other = (VarCompositeCodec) o;
+            return EqualsBuilder.newInstance(other.bitmapCodec, bitmapCodec).append(other.failFast, failFast).isEqual();
         }
     }
 }

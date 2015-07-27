@@ -4,10 +4,11 @@
 
     <defaults>
         <var length-encoding="CHAR"/>
+        <tlv tag-encoding="BINARY" length-encoding="BINARY"/>
         <alpha justified="LEFT" trim="true"/>
         <numeric encoding="CHAR"/>
         <date timezone="SYSTEM" encoding="CHAR"/>
-        <ordinality mandatory="true"/>
+        <ordinality mandatory="true" fail-fast="true"/>
     </defaults>
 
     <mti-encoding type="CHAR"/>
@@ -15,6 +16,7 @@
     <msg-bitmap type="BINARY"/>
 
     <message mti="100">
+        <alpha index="1" length="2"/>
         <composite-var index="127" length-digits="2" bitmap-type="BINARY">
             <alpha index="1" length="2"/>
         </composite-var>

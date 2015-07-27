@@ -8,7 +8,7 @@
         <alpha justified="LEFT" trim="true"/>
         <numeric encoding="CHAR"/>
         <date timezone="SYSTEM" encoding="CHAR"/>
-        <ordinality mandatory="true"/>
+        <ordinality mandatory="true" fail-fast="true"/>
     </defaults>
 
     <mti-encoding type="CHAR"/>

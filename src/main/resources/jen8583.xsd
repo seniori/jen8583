@@ -72,6 +72,7 @@
                                 <complexType>
                                     <!-- Ordinality means mandatory-nes of fields -->
                                     <attribute name="mandatory" type="boolean" use="required"/>
+                                    <attribute name="fail-fast" type="boolean" use="required"/>
                                 </complexType>
                             </element>
                         </sequence>

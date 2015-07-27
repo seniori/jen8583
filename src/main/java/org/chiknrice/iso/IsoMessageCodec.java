@@ -40,8 +40,12 @@ public class IsoMessageCodec {
      *
      * @param config the IsoMessageDef instance which represents 1 xml config.
      */
-    public IsoMessageCodec(IsoMessageDef config) {
+    private IsoMessageCodec(IsoMessageDef config) {
         this.config = config;
+    }
+
+    public static IsoMessageCodec build(String configXml) {
+        return new IsoMessageCodec(IsoMessageDef.build(configXml));
     }
 
     /**

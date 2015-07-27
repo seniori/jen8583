@@ -22,6 +22,8 @@ import org.chiknrice.iso.util.Bcd;
 import org.chiknrice.iso.util.Binary;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -35,12 +37,16 @@ import static org.chiknrice.iso.config.ComponentDef.Encoding;
 @SuppressWarnings("unchecked")
 public class TlvCompositeCodec implements CompositeCodec {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TlvCompositeCodec.class);
+
     private final Encoding tagEncoding;
     private final Encoding lengthEncoding;
+    private final boolean failFast;
 
-    public TlvCompositeCodec(Encoding tagEncoding, Encoding lengthEncoding) {
+    public TlvCompositeCodec(Encoding tagEncoding, Encoding lengthEncoding, boolean failFast) {
         this.tagEncoding = tagEncoding;
         this.lengthEncoding = lengthEncoding;
+        this.failFast = failFast;
     }
 
     @Override
@@ -70,7 +76,11 @@ public class TlvCompositeCodec implements CompositeCodec {
 
             if (value == null) {
                 if (def.isMandatory()) {
-                    throw new CodecException(format("Got null value for %d tag", tag));
+                    if (failFast) {
+                        throw new CodecException(format("Missing mandatory component %s", def));
+                    } else {
+                        LOG.warn("Missing mandatory component {}", def);
+                    }
                 } else {
                     continue;
                 }
@@ -86,7 +96,11 @@ public class TlvCompositeCodec implements CompositeCodec {
             }
         }
         if (missingTags.size() > 0) {
-            throw new CodecException(format("Missing mandatory tags %s", missingTags));
+            if (failFast) {
+                throw new CodecException(format("Missing mandatory tags %s", missingTags));
+            } else {
+                LOG.warn("Missing mandatory tags {}", missingTags);
+            }
         }
 
         return values;
@@ -127,10 +141,13 @@ public class TlvCompositeCodec implements CompositeCodec {
             // TODO: allow encoding of 0 length TLV?
             if (value == null) {
                 if (def.isMandatory()) {
-                    throw new CodecException(format("Missing mandatory component %s", def));
-                } else {
-                    continue;
+                    if (failFast) {
+                        throw new CodecException(format("Missing mandatory component %s", def));
+                    } else {
+                        LOG.warn("Missing mandatory component {}", def);
+                    }
                 }
+                continue;
             }
 
             encodeTag(buf, tag);
@@ -145,7 +162,11 @@ public class TlvCompositeCodec implements CompositeCodec {
         }
 
         if (toEncodeMap.size() > 0) {
-            throw new CodecException(format("Unexpected component(s) to encode %s", toEncodeMap));
+            if (failFast) {
+                throw new CodecException(format("Unexpected component(s) to encode %s", toEncodeMap));
+            } else {
+                LOG.warn("Unexpected component(s) to encode {}", toEncodeMap);
+            }
         }
     }
 
@@ -184,7 +205,7 @@ public class TlvCompositeCodec implements CompositeCodec {
         } else {
             TlvCompositeCodec other = (TlvCompositeCodec) o;
             return EqualsBuilder.newInstance(other.tagEncoding, tagEncoding)
-                    .append(other.lengthEncoding, lengthEncoding).isEqual();
+                    .append(other.lengthEncoding, lengthEncoding).append(other.failFast, failFast).isEqual();
         }
     }
 

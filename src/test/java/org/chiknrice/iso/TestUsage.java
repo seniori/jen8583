@@ -15,8 +15,6 @@
  */
 package org.chiknrice.iso;
 
-import org.chiknrice.iso.config.IsoMessageDef;
-
 import java.util.Date;
 
 /**
@@ -31,8 +29,7 @@ public class TestUsage {
         isoMessage.setField("28.1", "C");
         isoMessage.setField("28.2", 200);
 
-        IsoMessageDef def = IsoMessageDef.build("iso8583ascii.xml");
-        IsoMessageCodec codec = new IsoMessageCodec(def);
+        IsoMessageCodec codec = IsoMessageCodec.build("iso8583ascii.xml");
 
         byte[] encodedMessage = codec.encode(isoMessage);
 

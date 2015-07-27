@@ -50,10 +50,10 @@ public final class IsoMessageDef {
     private static final Logger LOG = LoggerFactory.getLogger(IsoMessageDef.class);
 
     private final CompositeDef headerCodec;
-    private final NumericCodec mtiCodec;
+    private final Codec<Number> mtiCodec;
     private final Map<Integer, CompositeDef> fieldsCodec;
 
-    private IsoMessageDef(CompositeDef headerDef, NumericCodec mtiCodec, Map<Integer, CompositeDef> fieldsDef) {
+    private IsoMessageDef(CompositeDef headerDef, Codec<Number> mtiCodec, Map<Integer, CompositeDef> fieldsDef) {
         this.headerCodec = headerDef;
         this.mtiCodec = mtiCodec;
         this.fieldsCodec = Collections.unmodifiableMap(fieldsDef);
@@ -63,7 +63,7 @@ public final class IsoMessageDef {
         return headerCodec;
     }
 
-    public NumericCodec getMtiCodec() {
+    public Codec<Number> getMtiCodec() {
         return mtiCodec;
     }
 
@@ -122,6 +122,7 @@ public final class IsoMessageDef {
         private static final String ATTR_TIMEZONE = "timezone";
         private static final String ATTR_FORMAT = "format";
         private static final String ATTR_MANDATORY = "mandatory";
+        private static final String ATTR_FAIL_FAST = "fail-fast";
         private static final String ATTR_TYPE = "type";
         private static final String ATTR_BITMAP_TYPE = "bitmap-type";
         private static final String ATTR_INDEX = "index";
@@ -133,6 +134,7 @@ public final class IsoMessageDef {
         private static final String ATTR_CONST_RIGHT = "RIGHT";
         private static final String ATTR_CONST_SYSTEM = "SYSTEM";
 
+
         private Encoding defaultLengthEncoding;
         private Encoding defaultTlvTagEncoding;
         private Encoding defaultTlvLengthEncoding;
@@ -142,6 +144,7 @@ public final class IsoMessageDef {
         private Encoding defaultDateEncoding;
         private TimeZone defaultTimeZone;
         private boolean defaultMandatory;
+        private boolean defaultFailFast;
 
         private final Document doc;
 
@@ -207,6 +210,9 @@ public final class IsoMessageDef {
                         break;
                     case ELEMENT_ORDINALITY:
                         defaultMandatory = Boolean.valueOf(getMandatoryAttribute(e, ATTR_MANDATORY));
+                        LOG.info("Default mandatory: {}", defaultMandatory);
+                        defaultFailFast = Boolean.valueOf(getMandatoryAttribute(e, ATTR_FAIL_FAST));
+                        LOG.info("Default fail-fast: {}", defaultFailFast);
                         break;
                 }
             }
@@ -266,7 +272,8 @@ public final class IsoMessageDef {
                     throw new ConfigException("Message field with index 1 not allowed");
                 }
 
-                defs.put(mti, new CompositeDef(messageFieldDefs, new FlexiCompositeCodec(bitmapCodec), true));
+                defs.put(mti,
+                        new CompositeDef(messageFieldDefs, new VarCompositeCodec(bitmapCodec, defaultFailFast), true));
             }
 
             return defs;
@@ -346,12 +353,14 @@ public final class IsoMessageDef {
                 case ELEMENT_COMPOSITE_TLV:
                     def = new CompositeDef(buildTlvComponents(e),
                             new TlvCompositeCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTlvTagEncoding),
-                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding)), mandatory);
+                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding), defaultFailFast),
+                            mandatory);
                     break;
                 case ELEMENT_COMPOSITE:
                     Bitmap.Type bitmapType = getBitmapType(e);
                     BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
-                    def = new CompositeDef(buildVarComponents(e), new FlexiCompositeCodec(bitmapCodec), mandatory);
+                    def = new CompositeDef(buildVarComponents(e), new VarCompositeCodec(bitmapCodec, defaultFailFast),
+                            mandatory);
                     break;
                 case ELEMENT_ALPHA:
                     def = new ComponentDef(new AlphaCodec(getTrim(e)), mandatory);
@@ -383,7 +392,8 @@ public final class IsoMessageDef {
                     Bitmap.Type bitmapType = getBitmapType(e);
                     BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
 
-                    def = new CompositeDef(buildVarComponents(e), new FlexiCompositeCodec(bitmapCodec), mandatory,
+                    def = new CompositeDef(buildVarComponents(e), new VarCompositeCodec(bitmapCodec, defaultFailFast),
+                            mandatory,
                             buildVarLengthCodec(e));
                     break;
                 case ELEMENT_COMPOSITE:
@@ -392,7 +402,8 @@ public final class IsoMessageDef {
                 case ELEMENT_COMPOSITE_TLV:
                     def = new CompositeDef(buildTlvComponents(e),
                             new TlvCompositeCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTlvTagEncoding),
-                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding)), mandatory,
+                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding), defaultFailFast),
+                            mandatory,
                             buildVarLengthCodec(e));
                     break;
                 case ELEMENT_ALPHA:
@@ -614,6 +625,7 @@ public final class IsoMessageDef {
             CompositeDef newDef = null;
 
             if (existingDef instanceof CompositeDef) {
+
                 existingSubComponentDefs = ((CompositeDef) existingDef).getSubComponentDefs();
                 existingCompositeCodec = ((CompositeDef) existingDef).getCompositeCodec();
                 existingLengthCodec = ((CompositeDef) existingDef).getLengthCodec();
@@ -625,11 +637,11 @@ public final class IsoMessageDef {
                 Boolean newMandatory = getOrdinality(e);
                 if (ELEMENT_COMPOSITE_TLV.equals(e.getTagName())) {
                     newCompositeCodec = new TlvCompositeCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTlvTagEncoding),
-                            getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding));
+                            getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding), defaultFailFast);
                 } else {
                     Bitmap.Type bitmapType = getBitmapType(e);
                     BitmapCodec newBitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
-                    newCompositeCodec = new FlexiCompositeCodec(newBitmapCodec);
+                    newCompositeCodec = new VarCompositeCodec(newBitmapCodec, defaultFailFast);
                 }
 
                 if (existingSubComponentDefs != null && EqualsBuilder
