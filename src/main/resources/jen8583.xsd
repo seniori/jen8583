@@ -39,8 +39,8 @@
                             </element>
                             <element name="tlv" minOccurs="1">
                                 <complexType>
-                                    <attribute name="tag-encoding" type="tns:tag-length-encoding" use="required"/>
-                                    <attribute name="length-encoding" type="tns:tag-length-encoding" use="required"/>
+                                    <attribute name="tag-encoding" type="tns:numeric-encoding" use="required"/>
+                                    <attribute name="length-encoding" type="tns:numeric-encoding" use="required"/>
                                 </complexType>
                             </element>
                             <element name="alpha" minOccurs="1">
@@ -122,29 +122,29 @@
 
     <!-- Defines a variable length composite field. As var-fields are flexible, it can only be used under a flexible
     composite component so an optional attribute is needed. -->
-    <complexType name="var-fields">
+    <complexType name="composite-var-in-composite-var">
         <complexContent>
-            <extension base="tns:bitmapped-fields">
+            <extension base="tns:composite-bitmap">
                 <attributeGroup ref="tns:variable-length"/>
                 <attributeGroup ref="tns:optional-member"/>
             </extension>
         </complexContent>
     </complexType>
 
-    <!-- Defines a bitmapped composite field.  This layer is shared by var-fields and composite-tlv-value.  It is refactored
-     since tlv defines its own way of encoding/decoding length-->
-    <complexType abstract="true" name="bitmapped-fields">
+    <!-- Defines composite components with optional bitmap.  This layer is shared by composite-var-in-composite-var and
+    composite-var-in-composite-tlv.  It is refactored since tlv defines its own way of encoding/decoding length-->
+    <complexType abstract="true" name="composite-bitmap">
         <complexContent>
-            <extension base="tns:root-fields">
+            <extension base="tns:message-data-elements">
                 <attribute name="bitmap-type" type="tns:bitmap-type" use="optional" default="HEX"/>
             </extension>
         </complexContent>
     </complexType>
 
-    <!-- Defines bitmampped components for use in a TLV context -->
-    <complexType name="composite-tlv-value">
+    <!-- Defines composite components for use in a TLV context -->
+    <complexType name="composite-var-in-composite-tlv">
         <complexContent>
-            <extension base="tns:bitmapped-fields">
+            <extension base="tns:composite-bitmap">
                 <attributeGroup ref="tns:tlv-member"/>
             </extension>
         </complexContent>
@@ -154,7 +154,7 @@
     needed here -->
     <complexType name="message">
         <complexContent>
-            <extension base="tns:root-fields">
+            <extension base="tns:message-data-elements">
                 <attribute name="mti" type="int" use="required"/>
             </extension>
         </complexContent>
@@ -165,7 +165,7 @@
         <sequence>
             <!-- Setting fields of a variable length composite field would augment the inherited set of fields but
             setting fields of a fixed length would replace the whole composite field -->
-            <element name="set" type="tns:root-fields" minOccurs="0"/>
+            <element name="set" type="tns:message-data-elements" minOccurs="0"/>
             <element name="remove" type="tns:excludes" minOccurs="0"/>
         </sequence>
         <attribute name="mti" type="int" use="required"/>
@@ -192,11 +192,11 @@
         </choice>
     </complexType>
 
-    <!-- Defines the structure of root fields.  Root fields is the structure for message level fields as well as the "set"
-    element for message extensions.  It is also the base type for variable length composite fields and exclude.  Sub field
-    types mostly have "-var" counterparts except for "date" which is always a fixed length field.  All fields under a
-    variable composite field can be non-mandatory which requires indexes to be specified -->
-    <complexType name="root-fields">
+    <!-- Defines the structure of iso message data elements.  Root fields is the structure for message level fields as
+    well as the "set" element for message extensions.  It is also the base type for variable length composite fields and
+    exclude.  Sub field types mostly have "-var" counterparts except for "date" which is always a fixed length field.
+    All fields under a variable composite field can be non-mandatory which requires indexes to be specified -->
+    <complexType name="message-data-elements">
         <choice minOccurs="1" maxOccurs="unbounded">
             <element name="alpha" type="tns:alpha-fixed-optional"/>
             <element name="alpha-var" type="tns:alpha-var"/>
@@ -208,8 +208,8 @@
             <element name="custom" type="tns:custom-fixed-optional"/>
             <element name="custom-var" type="tns:custom-var"/>
             <element name="composite" type="tns:fixed-fields-optional"/>
-            <element name="composite-var" type="tns:var-fields"/>
-            <element name="composite-tlv" type="tns:composite-tlv"/>
+            <element name="composite-var" type="tns:composite-var-in-composite-var"/>
+            <element name="composite-tlv" type="tns:composite-tlv-in-composite-var"/>
         </choice>
     </complexType>
 
@@ -245,12 +245,22 @@
             <element name="alpha" type="tns:alpha-tlv-value"/>
             <element name="numeric" type="tns:numeric-tlv-value"/>
             <element name="binary" type="tns:binary-tlv-value"/>
-            <element name="composite" type="tns:composite-tlv-value"/>
+            <element name="composite" type="tns:composite-var-in-composite-tlv"/>
             <element name="custom" type="tns:custom-tlv-value"/>
             <element name="composite-tlv" type="tns:composite-tlv"/>
         </choice>
-        <attribute name="tag-encoding" type="tns:tag-length-encoding" use="optional" default="BINARY"/>
-        <attribute name="length-encoding" type="tns:tag-length-encoding" use="optional" default="BINARY"/>
+        <attribute name="tlv-tag-encoding" type="tns:numeric-encoding" use="optional" default="BINARY"/>
+        <attribute name="tlv-length-encoding" type="tns:numeric-encoding" use="optional" default="BINARY"/>
+    </complexType>
+
+    <!-- Provided for composite-tlv under a composite-var context -->
+    <complexType name="composite-tlv-in-composite-var">
+        <complexContent>
+            <extension base="tns:composite-tlv">
+                <attributeGroup ref="tns:optional-member"/>
+                <attributeGroup ref="tns:variable-length"/>
+            </extension>
+        </complexContent>
     </complexType>
 
     <!-- Defines text fields (which are not really limited to alpha/numeric).  Characters under ISO 8859-1 are supported.
@@ -483,14 +493,6 @@
             <enumeration value="BINARY"/>
             <enumeration value="HEX"/>
             <enumeration value="COMPRESSED"/>
-        </restriction>
-    </simpleType>
-
-    <!-- Defines allowed encodings for tag and length components of a tlv -->
-    <simpleType name="tag-length-encoding">
-        <restriction base="token">
-            <enumeration value="CHAR"/>
-            <enumeration value="BINARY"/>
         </restriction>
     </simpleType>
 

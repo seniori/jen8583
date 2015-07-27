@@ -18,6 +18,8 @@ package org.chiknrice.iso.codec;
 
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.config.ComponentDef;
+import org.chiknrice.iso.util.Bcd;
+import org.chiknrice.iso.util.Binary;
 import org.chiknrice.iso.util.EqualsBuilder;
 import org.chiknrice.iso.util.Hash;
 
@@ -63,11 +65,15 @@ public class TlvCompositeCodec implements CompositeCodec {
 
             Object value = null;
             if (length > 0) {
-                value = codec.decode(buf);
+                value = codec.decode(valueBuf);
             }
 
-            if (value == null && def.isMandatory()) {
-                throw new CodecException(format("Got null value for %d tag", tag));
+            if (value == null) {
+                if (def.isMandatory()) {
+                    throw new CodecException(format("Got null value for %d tag", tag));
+                } else {
+                    continue;
+                }
             }
 
             values.put(tag, value);
@@ -86,14 +92,28 @@ public class TlvCompositeCodec implements CompositeCodec {
         return values;
     }
 
-    private Integer decodeLength(ByteBuffer buf) {
-        // TODO: implement this
-        throw new UnsupportedOperationException();
+    // TODO: properly decode using BER
+    private Integer decodeTag(ByteBuffer buf) {
+        if (tagEncoding == Encoding.BCD) {
+            byte[] bcdBytes = new byte[1];
+            buf.get(bcdBytes);
+            return Integer.valueOf(Bcd.decode(bcdBytes));
+        } else {
+            return 0xFF & buf.get();
+        }
     }
 
-    private Integer decodeTag(ByteBuffer buf) {
-        // TODO: implement this
-        throw new UnsupportedOperationException();
+    // TODO: properly decode using BER
+    private Integer decodeLength(ByteBuffer buf) {
+        if (lengthEncoding == Encoding.BCD) {
+            byte[] bcdBytes = new byte[1];
+            buf.get(bcdBytes);
+            return Integer.valueOf(Bcd.decode(bcdBytes));
+        } else {
+            byte[] bytes = new byte[2];
+            buf.get(bytes);
+            return Binary.decodeInt(bytes);
+        }
     }
 
     @Override
@@ -104,8 +124,13 @@ public class TlvCompositeCodec implements CompositeCodec {
             ComponentDef def = defEntry.getValue();
             Object value = toEncodeMap.remove(tag);
 
-            if (value == null && def.isMandatory()) {
-                throw new CodecException(format("Missing mandatory component %s", def));
+            // TODO: allow encoding of 0 length TLV?
+            if (value == null) {
+                if (def.isMandatory()) {
+                    throw new CodecException(format("Missing mandatory component %s", def));
+                } else {
+                    continue;
+                }
             }
 
             encodeTag(buf, tag);
@@ -114,7 +139,6 @@ public class TlvCompositeCodec implements CompositeCodec {
             ByteBuffer valueBuf = ByteBuffer.allocate(0x7FFF);
             def.getCodec().encode(valueBuf, value);
 
-            // TODO: compute length based on value encoding
             encodeLength(buf, valueBuf.position());
 
             buf.put(valueBuf.array(), 0, valueBuf.position());
@@ -125,14 +149,23 @@ public class TlvCompositeCodec implements CompositeCodec {
         }
     }
 
+    // TODO: properly encode using BER
     private void encodeTag(ByteBuffer buf, Integer tag) {
-        // TODO: implement this
-        throw new UnsupportedOperationException();
+        if (tagEncoding == Encoding.BCD) {
+            buf.put(Bcd.encode(tag.toString()));
+        } else {
+            buf.put(tag.byteValue());
+        }
     }
 
+    // TODO: properly encode using BER
     private void encodeLength(ByteBuffer buf, Integer length) {
-        // TODO: implement this
-        throw new UnsupportedOperationException();
+        if (lengthEncoding == Encoding.BCD) {
+            buf.put(Bcd.encode(length.toString()));
+        } else {
+            // for now 2 bytes - how we make this configurable for GB?
+            buf.put(Binary.encode(length, 2));
+        }
     }
 
     @Override

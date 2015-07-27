@@ -307,7 +307,7 @@ public final class IsoMessageDef {
                 fieldDefs = new TreeMap<>();
                 for (Element e : fields) {
                     Integer tag = Integer.valueOf(getMandatoryAttribute(e, ATTR_TAG));
-                    ComponentDef def = buildComponent(e, getOrdinality(e));
+                    ComponentDef def = buildTlvComponent(e, getOrdinality(e));
                     if (fieldDefs.containsKey(tag)) {
                         throw new ConfigException(format("Duplicate component tag: %d", tag));
                     }
@@ -340,6 +340,38 @@ public final class IsoMessageDef {
             return fieldDefs;
         }
 
+        private ComponentDef buildTlvComponent(Element e, boolean mandatory) {
+            ComponentDef def;
+            switch (e.getTagName()) {
+                case ELEMENT_COMPOSITE_TLV:
+                    def = new CompositeDef(buildTlvComponents(e),
+                            new TlvCompositeCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTlvTagEncoding),
+                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding)), mandatory);
+                    break;
+                case ELEMENT_COMPOSITE:
+                    Bitmap.Type bitmapType = getBitmapType(e);
+                    BitmapCodec bitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
+                    def = new CompositeDef(buildVarComponents(e), new FlexiCompositeCodec(bitmapCodec), mandatory);
+                    break;
+                case ELEMENT_ALPHA:
+                    def = new ComponentDef(new AlphaCodec(getTrim(e)), mandatory);
+                    break;
+                case ELEMENT_NUMERIC:
+                    def = new ComponentDef(new NumericCodec(getEncoding(e, ATTR_ENCODING, defaultNumericEncoding)),
+                            mandatory);
+                    break;
+                case ELEMENT_BINARY:
+                    def = new ComponentDef(new BinaryCodec(), mandatory);
+                    break;
+                case ELEMENT_CUSTOM:
+                    def = new ComponentDef(buildCustomCodec(e), mandatory);
+                    break;
+                default:
+                    throw new ConfigException("Unexepcted element: " + e.getTagName());
+            }
+            return def;
+        }
+
         /**
          * @param e
          * @return
@@ -360,7 +392,8 @@ public final class IsoMessageDef {
                 case ELEMENT_COMPOSITE_TLV:
                     def = new CompositeDef(buildTlvComponents(e),
                             new TlvCompositeCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTlvTagEncoding),
-                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding)), mandatory);
+                                    getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding)), mandatory,
+                            buildVarLengthCodec(e));
                     break;
                 case ELEMENT_ALPHA:
                     def = new ComponentDef(new AlphaCodec(getTrim(e), getLeftJustified(e),
@@ -567,50 +600,75 @@ public final class IsoMessageDef {
             }
         }
 
-        private void setVarFields(Map<Integer, ComponentDef> components, List<Element> elements) {
-            for (Element e : elements) {
-                Integer index = Integer.valueOf(e.getAttribute(ATTR_INDEX));
+        private boolean isCompositeVar(Element e) {
+            return ELEMENT_COMPOSITE_VAR.equals(e.getTagName()) || (ELEMENT_COMPOSITE_TLV
+                    .equals(((Element) e.getParentNode()).getTagName()) && ELEMENT_COMPOSITE.equals(e.getTagName()));
+        }
 
-                ComponentDef newDef = null;
+        private CompositeDef buildCompositeDef(ComponentDef existingDef, Element e) {
+            SortedMap<Integer, ComponentDef> existingSubComponentDefs;
+            CompositeCodec existingCompositeCodec;
+            Boolean existingMandatory = existingDef.isMandatory();
+            Codec<Number> existingLengthCodec;
 
-                if (ELEMENT_COMPOSITE_VAR.equals(e.getTagName())) {
-                    Boolean existingMandatory = null;
-                    SortedMap<Integer, ComponentDef> existingSubComponentDefs = null;
+            CompositeDef newDef = null;
 
-                    ComponentDef existingDef = components.get(index);
-                    CompositeCodec existingCompositeCodec = null;
-                    Codec<Number> existingLengthCodec = null;
-                    if (existingDef != null) {
-                        existingMandatory = existingDef.isMandatory();
-                        if (existingDef instanceof CompositeDef) {
-                            existingCompositeCodec = ((CompositeDef) existingDef).getCompositeCodec();
-                            existingLengthCodec = ((CompositeDef) existingDef).getLengthCodec();
-                            existingSubComponentDefs = ((CompositeDef) existingDef).getSubComponentDefs();
-                        }
-                    }
+            if (existingDef instanceof CompositeDef) {
+                existingSubComponentDefs = ((CompositeDef) existingDef).getSubComponentDefs();
+                existingCompositeCodec = ((CompositeDef) existingDef).getCompositeCodec();
+                existingLengthCodec = ((CompositeDef) existingDef).getLengthCodec();
 
-                    NumericCodec newLengthCodec = buildVarLengthCodec(e);
+                NumericCodec newLengthCodec = ELEMENT_COMPOSITE_TLV
+                        .equals(((Element) e.getParentNode()).getTagName()) ? null : buildVarLengthCodec(e);
 
+                CompositeCodec newCompositeCodec;
+                Boolean newMandatory = getOrdinality(e);
+                if (ELEMENT_COMPOSITE_TLV.equals(e.getTagName())) {
+                    newCompositeCodec = new TlvCompositeCodec(getEncoding(e, ATTR_TAG_ENCODING, defaultTlvTagEncoding),
+                            getEncoding(e, ATTR_LENGTH_ENCODING, defaultTlvLengthEncoding));
+                } else {
                     Bitmap.Type bitmapType = getBitmapType(e);
                     BitmapCodec newBitmapCodec = bitmapType != null ? new BitmapCodec(bitmapType) : null;
+                    newCompositeCodec = new FlexiCompositeCodec(newBitmapCodec);
+                }
 
-                    Boolean newMandatory = getOrdinality(e);
-                    CompositeCodec newCompositeCodec = new FlexiCompositeCodec(newBitmapCodec);
+                if (existingSubComponentDefs != null && EqualsBuilder
+                        .newInstance(existingCompositeCodec, newCompositeCodec).append(existingMandatory, newMandatory)
+                        .append(existingLengthCodec, newLengthCodec).isEqual()) {
+                    setVarFields(existingSubComponentDefs, getSubElements(e));
 
-                    if (existingSubComponentDefs != null && EqualsBuilder
-                            .newInstance(existingCompositeCodec, newCompositeCodec)
-                            .append(existingLengthCodec, newLengthCodec).append(existingMandatory, newMandatory)
-                            .isEqual()) {
-                        setVarFields(existingSubComponentDefs, getSubElements(e));
+                    newDef = new CompositeDef(existingSubComponentDefs, newCompositeCodec, newMandatory,
+                            newLengthCodec);
+                }
+            }
 
-                        newDef = new CompositeDef(existingSubComponentDefs, newCompositeCodec, newMandatory,
-                                newLengthCodec);
+            return newDef;
+        }
+
+        private void setVarFields(Map<Integer, ComponentDef> components, List<Element> elements) {
+            for (Element e : elements) {
+
+                Integer index = getOptionalInteger(e, ATTR_INDEX);
+                if (index == null) {
+                    index = Integer.valueOf(getMandatoryAttribute(e, ATTR_TAG));
+                }
+                ComponentDef existingDef = components.get(index);
+                ComponentDef newDef = null;
+                if (isCompositeVar(e) || ELEMENT_COMPOSITE_TLV.equals(e.getTagName())) {
+                    if (existingDef != null) {
+                        newDef = buildCompositeDef(existingDef, e);
                     }
                 }
 
                 if (newDef == null) {
-                    newDef = buildComponent(e, getOrdinality(e));
+                    if (ELEMENT_COMPOSITE_TLV.equals(((Element) e.getParentNode()).getTagName())) {
+                        newDef = buildTlvComponent(e, getOrdinality(e));
+                    } else {
+                        newDef = buildComponent(e, getOrdinality(e));
+                    }
+
                 }
+
                 components.put(index, newDef);
             }
         }

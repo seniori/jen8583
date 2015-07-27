@@ -58,25 +58,33 @@ public class FlexiCompositeCodec implements CompositeCodec {
 
         Integer index = 1;
         while (buf.hasRemaining()) {
-            ComponentDef def = subComponentDefs.get(index);
+            try {
+                ComponentDef def = subComponentDefs.get(index);
 
-            if (def == null) {
-                if (bitmap != null && bitmap.isSet(index)) {
-                    throw new CodecException(format("Missing configuration for %d", index));
-                } else {
+                if (def == null) {
+                    if (bitmap != null && bitmap.isSet(index) && !bitmap.isControlBit(index)) {
+                        throw new CodecException(format("Missing configuration for %d", index));
+                    } else if (subComponentDefs.lastKey() < index) {
+                        break;
+                    } else {
+                        continue;
+                    }
+                }
+
+                if (bitmap != null && !bitmap.isSet(index)) {
                     continue;
                 }
+
+                Object value = def.getCodec().decode(buf);
+
+                if (value == null && def.isMandatory()) {
+                    throw new CodecException(format("Missing mandatory component %s", def));
+                }
+
+                values.put(index, value);
+            } finally {
+                index++;
             }
-
-            Object value = def.getCodec().decode(buf);
-
-            if (value == null && def.isMandatory()) {
-                throw new CodecException(format("Missing mandatory component %s", def));
-            }
-
-            values.put(index, value);
-
-            index++;
         }
 
         return values;
