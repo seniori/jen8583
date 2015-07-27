@@ -23,6 +23,8 @@ import org.chiknrice.iso.util.Hash;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import static java.lang.String.format;
+
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
  */
@@ -43,8 +45,7 @@ public class ComponentDef {
         this.mandatory = mandatory;
 
         if (codec instanceof CompositeDef) {
-            throw new ConfigException(String
-                    .format("%s shouldn't be used as codec", CompositeDef.class.getSimpleName()));
+            throw new ConfigException(format("%s shouldn't be used as codec", CompositeDef.class.getSimpleName()));
         }
     }
 

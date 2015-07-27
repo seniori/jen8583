@@ -131,8 +131,8 @@ public class BitmapCodecTest {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < buf.position(); i++) {
-            sb.append(String.format("%04d", Integer
-                    .parseInt(Integer.toBinaryString(Integer.parseInt(Character.toString((char) encoded[i]), 16)))));
+            sb.append(String.format("%04d", Integer.parseInt(
+                    Integer.toBinaryString(Integer.parseInt(Character.toString((char) encoded[i]), 16)))));
         }
         String expected = "0110100100001000000010000000000000000000000000000000000000000000";
         assertThat(sb.toString(), is(expected));
@@ -160,8 +160,8 @@ public class BitmapCodecTest {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < buf.position(); i++) {
-            sb.append(String.format("%04d", Integer
-                    .parseInt(Integer.toBinaryString(Integer.parseInt(Character.toString((char) encoded[i]), 16)))));
+            sb.append(String.format("%04d", Integer.parseInt(
+                    Integer.toBinaryString(Integer.parseInt(Character.toString((char) encoded[i]), 16)))));
         }
         String expected = "11101001000010000000100000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000";
         assertThat(sb.toString(), is(expected));

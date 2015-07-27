@@ -22,8 +22,8 @@ import java.nio.ByteBuffer;
 /**
  * The main contract for a codec used across encoding and decoding of message components. Each field/component of the
  * ISO message would have its own instance of codec which contains the definition of how the value should be
- * encoded/decoded. The codec should be designed to be thread safe as the instance would live throughout the life of
- * the IsoMessageDef. Any issues encountered during encoding/decoding should be throwing a CodecException. Any issues
+ * encoded/decoded. The codec should be designed to be thread safe as the instance would live throughout the life of the
+ * IsoMessageDef. Any issues encountered during encoding/decoding should be throwing a CodecException. Any issues
  * encountered during codec configuration/construction the constructor should throw a ConfigException. A ConfigException
  * should generally happen during startup while CodecException happens when the Codec is being used.
  *

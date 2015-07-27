@@ -24,6 +24,8 @@ import org.chiknrice.iso.util.Hash;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import static java.lang.String.format;
+
 /**
  * A codec implementation for alphanumeric fields. The only supported character set is ISO 8859-1 (single byte character
  * set) to encode/decode the string to and from byte[]. The codec can be configured to be fixed length where option for
@@ -60,10 +62,10 @@ public class AlphaCodec implements Codec<String> {
     public void encode(ByteBuffer buf, String value) {
         if (fixedLength != null) {
             if (value.length() > fixedLength) {
-                throw new CodecException(String
-                        .format("Length of value (%s) exceeds allowed length (%d)", value, fixedLength));
+                throw new CodecException(
+                        format("Length of value (%s) exceeds allowed length (%d)", value, fixedLength));
             } else {
-                value = String.format("%" + (leftJustified ? "-" : "") + fixedLength + "s", value);
+                value = format("%" + (leftJustified ? "-" : "") + fixedLength + "s", value);
             }
         }
         buf.put(value.getBytes(StandardCharsets.ISO_8859_1));

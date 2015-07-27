@@ -150,8 +150,7 @@ public class NumericCodecTest {
     @Test
     public void testDecodeBigIntegerChar() {
         NumericCodec codec = new NumericCodec(Encoding.CHAR);
-        byte[] bytes = new byte[]{0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32,
-                0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33};
+        byte[] bytes = new byte[]{0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33, 0x31, 0x32, 0x33};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertThat(decoded, is(instanceOf(BigInteger.class)));
         assertThat(decoded.toString(), is("123123123123123123123123"));
@@ -208,8 +207,7 @@ public class NumericCodecTest {
     @Test
     public void testDecodeExceedingLongBinary() {
         NumericCodec codec = new NumericCodec(Encoding.BINARY, 8);
-        byte[] bytes = new byte[]{0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-                (byte) 0xFF};
+        byte[] bytes = new byte[]{0x7F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
         Number decoded = codec.decode(ByteBuffer.wrap(bytes));
         assertThat(decoded, is(instanceOf(Long.class)));
         assertThat(decoded, CoreMatchers.<Number>is(Long.MAX_VALUE));
