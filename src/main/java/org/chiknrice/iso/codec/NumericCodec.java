@@ -42,11 +42,12 @@ public class NumericCodec implements Codec<Number> {
         this.fixedLength = fixedLength;
         if (Encoding.BINARY.equals(encoding)) {
             if (fixedLength == null) {
-                throw new ConfigException(String.format(
-                        "Variable length numeric field encoded in %s could exceed long type", encoding));
+                throw new ConfigException(
+                        String.format("Variable length numeric field encoded in %s could exceed long type", encoding));
             } else if (fixedLength > 8) {
-                throw new ConfigException(String.format(
-                        "Numeric field encoded in %s with %d bytes won't fit long type", encoding, fixedLength));
+                throw new ConfigException(
+                        String.format("Numeric field encoded in %s with %d bytes won't fit long type", encoding,
+                                fixedLength));
             }
             supportsBigInteger = false;
         } else if (Encoding.CHAR.equals(encoding) || Encoding.BCD.equals(encoding)) {
@@ -59,13 +60,14 @@ public class NumericCodec implements Codec<Number> {
     public Number decode(ByteBuffer buf) {
         int bytesToDecode;
         if (fixedLength != null) {
-            if (buf.remaining() < fixedLength) {
-                throw new CodecException(String.format("Expecting %d bytes, only %d remaining", fixedLength,
-                        buf.remaining()));
-            } else if (Encoding.BCD == encoding) {
+            if (Encoding.BCD == encoding) {
                 bytesToDecode = fixedLength / 2 + fixedLength % 2;
             } else {
                 bytesToDecode = fixedLength;
+            }
+            if (buf.remaining() < bytesToDecode) {
+                throw new CodecException(
+                        String.format("Expecting %d bytes, only %d remaining", bytesToDecode, buf.remaining()));
             }
         } else {
             bytesToDecode = buf.limit() - buf.position();
