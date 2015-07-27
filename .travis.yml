@@ -31,7 +31,8 @@ env:
     - secure: "ml2ebaoGmYPz4zrrTv/AEIoExV1dLXT4I1lOiPzzCoF9LQJQZKWYr0U9iarYTT2YjhGu6e0dRzLLTRUTV6px4+Me54sXHhUFClcUZU56HVlF5DMpbXrgcJ4BrWhNaoDJM9XgtdGfawd6uF6TDWdvHty+zImOFGkNQLPFVKkxf0YZzaeo0CvQdyhE9q0mpGMNupggl3NfIy6PIekrMEJX6Cl+r0VXupe4Dx1f5xc3aRxfxtdX0ujDXerQ/MxHlBUKD3CTMB1sQuc9+GO3pmsUYDHCsDDtbqFTDFgUugbHLHV1DTKLop9GdeL7AlUEy5JAFNxKbM9cYFobC4dJjExvw/mqNKIjuh78GOj0mN0oVSCsDbK1saYRhy+9flweoL+P+SZPPMgW5VTKlVWjXlXNiuPOZZyEonJCS8Vrmx7jmyXnDPKYyHEgfbiVt8f1xV/s1iMuyDQ6TVZSubagw24gH6LFV0SDi3w1Sza/aLd9P+HFwPSiF2v1GuJOaGfQNek8ME7A+7BtbulVBsRgoDvglseNJgHIiNULUBoDj24jFmmbBCbXXwsVom0TqaK4McXiuajVphauVa/iM3EyQmuVm7b5XwdhX8I0ZyCAzDutT9RqqsgElsGUMPeDcfgJdKO1H1z36XEnCEp27NeoDdoN1mizi/pOmCmi6O2ICkC28zw="
 
 script:
-  - mvn cobertura:cobertura coveralls:report -Dcobertura.report.format=xml -P snapshot.build
+  - mvn cobertura:cobertura -Dcobertura.report.format=xml -P snapshot.build
 
 after_success:
-  - test "${TRAVIS_TAG}" != "" && test “${TRAVIS_JDK_VERSION}” == “oraclejdk7″ && mvn deploy --settings src/build/deploy-settings.xml -DskipTests -P release.build
+  - test "${TRAVIS_JDK_VERSION}" == "oraclejdk7" && mvn coveralls:report -P snapshot.build
+  - test "${TRAVIS_TAG}" != "" && test "${TRAVIS_JDK_VERSION}" == "oraclejdk7" && mvn deploy --settings src/build/deploy-settings.xml -DskipTests -P release.build
