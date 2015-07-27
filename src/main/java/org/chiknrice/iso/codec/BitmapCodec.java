@@ -99,8 +99,7 @@ public class BitmapCodec {
         }
     }
 
-    private static void writeBytes(ByteBuffer buf, TreeSet<Integer> bits, byte[] primaryBitmap, int extendedSize,
-                                   boolean hex) {
+    private static void writeBytes(ByteBuffer buf, TreeSet<Integer> bits, byte[] primaryBitmap, int extendedSize, boolean hex) {
         int offset = 0;
         byte[] bytes = primaryBitmap;
         for (Integer bit : bits) {
@@ -166,6 +165,25 @@ public class BitmapCodec {
         public boolean isSet(int bit) {
             int byteIndex = byteIndex(bit);
             return byteIndex < bytes.length && (bytes[byteIndex] & mask(bit)) > 0;
+        }
+
+        public boolean isControlBit(int bit) {
+            boolean controlBit = false;
+            switch (type) {
+                case HEX:
+                case BINARY:
+                    if (bit == 1) {
+                        controlBit = true;
+                    }
+                    break;
+                case COMPRESSED:
+                    if (bit == 1 || bit == 17 || bit == 25) {
+                        controlBit = true;
+                    }
+                    break;
+                default:
+            }
+            return controlBit;
         }
 
         public void set(int bit) {
