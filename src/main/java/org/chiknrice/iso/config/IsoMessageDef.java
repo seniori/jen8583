@@ -222,7 +222,7 @@ public final class IsoMessageDef {
             CompositeDef headerDef = null;
             SortedMap<Integer, ComponentDef> headerComponents = buildHeaderComponents();
             if (headerComponents != null) {
-                headerDef = new CompositeDef(headerComponents, new FixedCompositeCodec());
+                headerDef = new CompositeDef(headerComponents, new FixedCompositeCodec(), true);
             }
 
             Bitmap.Type msgBitmapType = Bitmap.Type.valueOf(
@@ -266,7 +266,7 @@ public final class IsoMessageDef {
                     throw new ConfigException("Message field with index 1 not allowed");
                 }
 
-                defs.put(mti, new CompositeDef(messageFieldDefs, new FlexiCompositeCodec(bitmapCodec)));
+                defs.put(mti, new CompositeDef(messageFieldDefs, new FlexiCompositeCodec(bitmapCodec), true));
             }
 
             return defs;
@@ -534,7 +534,9 @@ public final class IsoMessageDef {
                     removeFields(clonedFieldsDef, getSubElements(removeElement));
                 }
 
-                extensions.put(mti, existing.clone(clonedFieldsDef));
+                extensions.put(mti,
+                        new CompositeDef(clonedFieldsDef, existing.getCompositeCodec(), existing.isMandatory(),
+                                existing.getLengthCodec()));
 
             }
             existingCodecs.putAll(extensions);
@@ -619,8 +621,11 @@ public final class IsoMessageDef {
                 Integer index = defEntry.getKey();
                 ComponentDef def = defEntry.getValue();
                 if (def instanceof CompositeDef) {
-                    clone.put(index, ((CompositeDef) def)
-                            .clone(cloneSubComponentDefs(((CompositeDef) def).getSubComponentDefs())));
+                    CompositeDef compositeDef = (CompositeDef) def;
+
+                    clone.put(index, new CompositeDef(cloneSubComponentDefs(compositeDef.getSubComponentDefs()),
+                            compositeDef.getCompositeCodec(), compositeDef.isMandatory(),
+                            compositeDef.getLengthCodec()));
                 } else {
                     clone.put(index, new ComponentDef(def.getCodec(), def.isMandatory()));
                 }

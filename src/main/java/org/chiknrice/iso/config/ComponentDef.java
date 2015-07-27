@@ -32,7 +32,7 @@ public class ComponentDef {
     private final Codec codec;
     private final boolean mandatory;
 
-    protected CompositeDef parent;
+    private CompositeDef parent;
 
     public ComponentDef(Codec codec) {
         this(codec, true);
@@ -54,6 +54,10 @@ public class ComponentDef {
 
     public boolean isMandatory() {
         return mandatory;
+    }
+
+    protected void setParent(CompositeDef parent) {
+        this.parent = parent;
     }
 
     public enum Encoding {

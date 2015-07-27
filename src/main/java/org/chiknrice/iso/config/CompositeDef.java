@@ -37,10 +37,6 @@ public class CompositeDef extends ComponentDef {
 
     private final Codec<Map<Integer, Object>> codec;
 
-    public CompositeDef(final SortedMap<Integer, ComponentDef> subComponentDefs, final CompositeCodec compositeCodec) {
-        this(subComponentDefs, compositeCodec, true, null);
-    }
-
     public CompositeDef(final SortedMap<Integer, ComponentDef> subComponentDefs, final CompositeCodec compositeCodec, final boolean mandatory) {
         this(subComponentDefs, compositeCodec, mandatory, null);
     }
@@ -76,7 +72,7 @@ public class CompositeDef extends ComponentDef {
         this.codec = codec;
 
         for (ComponentDef subComponentDef : subComponentDefs.values()) {
-            subComponentDef.parent = this;
+            subComponentDef.setParent(this);
         }
     }
 
@@ -116,10 +112,6 @@ public class CompositeDef extends ComponentDef {
                     .append(other.compositeCodec, compositeCodec).append(other.lengthCodec, lengthCodec)
                     .append(other.isMandatory(), isMandatory()).isEqual();
         }
-    }
-
-    public CompositeDef clone(SortedMap<Integer, ComponentDef> subComponentDefs) {
-        return new CompositeDef(subComponentDefs, compositeCodec, this.isMandatory(), lengthCodec);
     }
 
 }
