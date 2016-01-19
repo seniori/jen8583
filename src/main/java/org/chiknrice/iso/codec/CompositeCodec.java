@@ -74,7 +74,8 @@ public final class CompositeCodec implements Codec<Map<Integer, Object>> {
             ByteBuffer valueBuf;
             if (def.getCodec() instanceof VarCodec) {
                 int varLength = ((VarCodec<?>) def.getCodec()).getLengthCodec().decode(buf).intValue();
-                int limit = def.getCodec().getEncoding() == Encoding.BCD ? varLength / 2 + varLength % 2 : varLength;
+                int limit = (def.getCodec().getEncoding() == Encoding.BCD || def.getCodec().getEncoding() == Encoding.BCDF)
+                        ? varLength / 2 + varLength % 2 : varLength;
                 valueBuf = buf.slice();
                 valueBuf.limit(limit);
                 buf.position(buf.position() + limit);

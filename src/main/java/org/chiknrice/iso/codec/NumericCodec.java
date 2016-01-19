@@ -22,10 +22,7 @@ import java.nio.charset.StandardCharsets;
 import org.chiknrice.iso.CodecException;
 import org.chiknrice.iso.ConfigException;
 import org.chiknrice.iso.config.ComponentDef.Encoding;
-import org.chiknrice.iso.util.Bcd;
-import org.chiknrice.iso.util.Binary;
-import org.chiknrice.iso.util.EqualsBuilder;
-import org.chiknrice.iso.util.Hash;
+import org.chiknrice.iso.util.*;
 
 /**
  * @author <a href="mailto:chiknrice@gmail.com">Ian Bondoc</a>
@@ -72,6 +69,9 @@ public class NumericCodec implements Codec<Number> {
             break;
         case BINARY:
             value = Binary.decodeLong(bytes);
+            break;
+        case BCDF:
+            value = Bcdf.decode(bytes);
             break;
         default:
             throw new CodecException(String.format("Unsupported encoding %s", encoding));
@@ -123,6 +123,9 @@ public class NumericCodec implements Codec<Number> {
                 break;
             case BCD:
                 buf.put(Bcd.encode(stringValue));
+                break;
+            case BCDF:
+                buf.put(Bcdf.encode(stringValue));
                 break;
             default:
                 throw new CodecException(String.format("Unsupported encoding %s", encoding));

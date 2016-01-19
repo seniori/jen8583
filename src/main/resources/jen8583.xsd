@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.chiknrice.org/jen8583" xmlns:tns="http://www.chiknrice.org/jen8583"
-    elementFormDefault="qualified" version="0.0.4">
+    elementFormDefault="qualified" version="0.0.4.1">
 
     <!--
 
@@ -288,6 +288,7 @@
             <enumeration value="CHAR"></enumeration>
             <enumeration value="BINARY"></enumeration>
             <enumeration value="BCD"></enumeration>
+            <enumeration value="BCDF"></enumeration>
         </restriction>
     </simpleType>
 

@@ -62,7 +62,7 @@ public class ComponentDef {
     }
 
     public static enum Encoding {
-        CHAR, BCD, BINARY
+        CHAR, BCD, BINARY, BCDF
     }
 
     @Override
